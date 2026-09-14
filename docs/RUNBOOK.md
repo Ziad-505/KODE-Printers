@@ -6,7 +6,7 @@ Everything here assumes the Compose deployment in `docker-compose.yml`.
 
 ## Go-live
 
-1. **Secrets.** `cp .env.example .env`, then generate two *different* values:
+1. **Secrets.** `cp .env.example .env`, then generate two _different_ values:
 
    ```bash
    openssl rand -base64 48
@@ -45,6 +45,9 @@ Everything here assumes the Compose deployment in `docker-compose.yml`.
 6. **Change it.** Until it is changed, every route except sign-in and
    change-password returns 503. This is the intended state, not a fault.
 
+   This is the only password anyone is ever told. Every account after it is
+   created without one — see _Giving people accounts_ below.
+
 7. **Second administrator.** Create one before you finish. The system refuses
    to demote or disable the last one, so without a second account a lockout is
    recoverable only by editing the database.
@@ -67,6 +70,32 @@ Everything here assumes the Compose deployment in `docker-compose.yml`.
 
 ---
 
+## Giving people accounts
+
+Press **Create an account** on the People screen, tick the printers they may
+use, and send them the link it produces. They choose their own password.
+
+| Situation          | What you do                                                          |
+| ------------------ | -------------------------------------------------------------------- |
+| New starter        | Create an account, Copy link, send it                                |
+| They lost the link | _New link_ on their row — the old one stops working                  |
+| Forgotten password | _Make a reset link_, copy, send                                      |
+| Someone left       | _Turn off_. Their sessions end at once and their print history stays |
+
+Link lifetimes: **seven days** for a new account, **one hour** for a reset. Both
+work exactly once. Only the hash is stored, so a link cannot be shown again —
+if it is lost, make another.
+
+Making a reset link signs that person out on every device immediately. That is
+deliberate: an administrator issuing one is answering either "I can't get in" or
+"I think someone else can", and the second case is not helped by leaving the
+intruder's session alive.
+
+Nothing here sends email. If someone asks why they did not get one, that is the
+answer — the link goes out through whatever you already use to reach them.
+
+---
+
 ## Adding printers
 
 Add by IP address only. Serial number, vendor, model, IPP support and
@@ -85,14 +114,15 @@ capabilities all come from the probe.
 
 ## Day-to-day
 
-| Symptom | Where to look | Usual cause |
-| --- | --- | --- |
-| Job stuck in `queued` | `/api/health/ready` → `queue-depth` | Worker not running, or the printer's circuit is open |
-| Job failed with `PRINTER_NOT_READY` | The printer's `stateReasons` | Jam, empty tray, open door. Fix it; the job retries |
-| Printer flips online/offline | `printer.state_changed` notifications | Sleep timer on the device, or a flaky switch port |
-| `device-mismatch` on a printer | Audit log, `printer.identity_mismatch` | A device was swapped and took the old lease. Confirm what is physically there before clearing |
-| Reports understate usage | `coverageNote` in the summary response | A printer in scope has SNMP off |
-| Collector shows unhealthy | `GET /api/collectors` | Three missed heartbeats. Check the uplink from the collector side; it keeps spooling meanwhile |
+| Symptom                             | Where to look                          | Usual cause                                                                                    |
+| ----------------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Job stuck in `queued`               | `/api/health/ready` → `queue-depth`    | Worker not running, or the printer's circuit is open                                           |
+| Job failed with `PRINTER_NOT_READY` | The printer's `stateReasons`           | Jam, empty tray, open door. Fix it; the job retries                                            |
+| Printer flips online/offline        | `printer.state_changed` notifications  | Sleep timer on the device, or a flaky switch port                                              |
+| `device-mismatch` on a printer      | Audit log, `printer.identity_mismatch` | A device was swapped and took the old lease. Confirm what is physically there before clearing  |
+| Reports understate usage            | `coverageNote` in the summary response | A printer in scope has SNMP off                                                                |
+| Collector shows unhealthy           | `GET /api/collectors`                  | Three missed heartbeats. Check the uplink from the collector side; it keeps spooling meanwhile |
+| "This link no longer works"         | Audit log, `user.setup_link`           | Used already, expired, or superseded by a newer link. Make a fresh one                         |
 
 ### Requests to keep
 
@@ -110,12 +140,12 @@ docker compose logs app | grep <requestId>
 
 Metrics are at `/api/health/metrics`, reachable from the internal network only.
 
-| Metric | Threshold | Means |
-| --- | --- | --- |
-| `kode_queue_oldest_seconds` | > 900 | Jobs are not draining. Same threshold the readiness check uses |
-| `kode_queue_depth` | > 50 | Backlog building |
-| `kode_printers_up` | drops sharply | A switch or a building, not a printer |
-| Disk on the upload volume | > 80% | The retention sweep also raises this as a notification |
+| Metric                      | Threshold     | Means                                                          |
+| --------------------------- | ------------- | -------------------------------------------------------------- |
+| `kode_queue_oldest_seconds` | > 900         | Jobs are not draining. Same threshold the readiness check uses |
+| `kode_queue_depth`          | > 50          | Backlog building                                               |
+| `kode_printers_up`          | drops sharply | A switch or a building, not a printer                          |
+| Disk on the upload volume   | > 80%         | The retention sweep also raises this as a notification         |
 
 ---
 

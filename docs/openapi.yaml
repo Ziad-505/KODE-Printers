@@ -221,7 +221,11 @@ paths:
         - { $ref: '#/components/parameters/Cursor' }
         - { $ref: '#/components/parameters/Limit' }
         - { name: zoneId, in: query, schema: { type: integer } }
-        - { name: status, in: query, schema: { type: string, enum: [online, offline, degraded, unknown] } }
+        - {
+            name: status,
+            in: query,
+            schema: { type: string, enum: [online, offline, degraded, unknown] },
+          }
         - { name: search, in: query, schema: { type: string } }
         - { name: includeInactive, in: query, schema: { type: boolean } }
       responses:
@@ -369,7 +373,11 @@ paths:
         - { name: userId, in: query, schema: { type: integer } }
         - { name: status, in: query, schema: { type: string } }
         - { name: source, in: query, schema: { type: string, enum: [app, walkup, manual] } }
-        - { name: jobType, in: query, schema: { type: string, enum: [print, scan, copy, fax, unknown] } }
+        - {
+            name: jobType,
+            in: query,
+            schema: { type: string, enum: [print, scan, copy, fax, unknown] },
+          }
         - { name: from, in: query, schema: { type: string } }
         - { name: to, in: query, schema: { type: string } }
         - { name: search, in: query, schema: { type: string } }
@@ -458,7 +466,11 @@ paths:
         - { $ref: '#/components/parameters/Cursor' }
         - { $ref: '#/components/parameters/Limit' }
         - { name: printerId, in: query, schema: { type: integer } }
-        - { name: status, in: query, schema: { type: string, enum: [unclaimed, claimed, archived] } }
+        - {
+            name: status,
+            in: query,
+            schema: { type: string, enum: [unclaimed, claimed, archived] },
+          }
         - { name: mine, in: query, schema: { type: boolean } }
       responses:
         '200':
@@ -668,7 +680,11 @@ paths:
       parameters:
         - { name: from, in: query, required: true, schema: { type: string } }
         - { name: to, in: query, required: true, schema: { type: string } }
-        - { name: dimension, in: query, schema: { type: string, enum: [user, printer, zone, department] } }
+        - {
+            name: dimension,
+            in: query,
+            schema: { type: string, enum: [user, printer, zone, department] },
+          }
         - { name: limit, in: query, schema: { type: integer, maximum: 50 } }
       responses:
         '200':
@@ -851,6 +867,82 @@ paths:
             text/event-stream:
               schema: { type: string }
 
+  /users/{id}/setup-link:
+    post:
+      tags: [users]
+      summary: Mint a set-password or reset link
+      description: |
+        Returns the whole URL exactly once, for an administrator to copy and
+        send. Only its hash is stored, so no route can show it again. Minting a
+        link revokes whatever was outstanding for that person; a reset link also
+        ends every session they have.
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                purpose: { type: string, enum: [setup, reset], default: setup }
+      responses:
+        '201':
+          description: The link.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SetupLink' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+
+  /auth/set-password/{token}:
+    get:
+      tags: [auth]
+      summary: What a set-password link is for
+      description: |
+        Unauthenticated by necessity — the holder has no way in yet. Returns
+        only a name to greet them by and the expiry. Unknown, spent and expired
+        links all produce the same refusal.
+      security: []
+      parameters:
+        - { name: token, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Who the link is for.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SetupLinkSubject' }
+        '410': { $ref: '#/components/responses/Error' }
+        '429': { $ref: '#/components/responses/Error' }
+
+  /auth/set-password:
+    post:
+      tags: [auth]
+      summary: Redeem a link and choose a password
+      description: |
+        Sets the password, burns the token and signs the person in — they have
+        just proved possession of a single-use secret and typed the password
+        seconds ago. Every earlier session for that account is revoked.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, password, confirmPassword]
+              properties:
+                token: { type: string }
+                password: { type: string, minLength: 12 }
+                confirmPassword: { type: string }
+      responses:
+        '200':
+          description: Signed in.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoginResult' }
+        '400': { $ref: '#/components/responses/Error' }
+        '410': { $ref: '#/components/responses/Error' }
+        '429': { $ref: '#/components/responses/Error' }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -987,7 +1079,8 @@ components:
           type: string
           enum: [print, scan, copy, fax, unknown]
           description: unknown means the device has no vendor counter, so a print and a photocopy cannot be told apart. Label such activity; never count it as printing.
-        status: { type: string, enum: [queued, held, processing, sent, completed, failed, cancelled] }
+        status:
+          { type: string, enum: [queued, held, processing, sent, completed, failed, cancelled] }
         pages: { type: integer }
         copies: { type: integer }
         impressions:
@@ -1055,6 +1148,12 @@ components:
         zoneId: { type: [integer, 'null'] }
         mustChangePassword: { type: boolean }
         isActive: { type: boolean }
+        hasPassword:
+          type: boolean
+          description: False while the account exists but nobody has chosen a password for it yet.
+        setupLinkExpiresAt:
+          type: [string, 'null']
+          description: When the outstanding set-password link stops working, or null when there is none.
         printerIds:
           type: array
           items: { type: integer }
@@ -1118,6 +1217,29 @@ components:
         webPushEnabled: { type: boolean }
         scanReservationMinutes: { type: integer }
         walkupReportLabel: { type: string }
+
+    SetupLink:
+      type: object
+      description: Returned once, at creation. Only the hash is kept.
+      properties:
+        url: { type: string }
+        purpose: { type: string, enum: [setup, reset] }
+        expiresAt: { type: string }
+        user:
+          type: object
+          properties:
+            id: { type: integer }
+            username: { type: string }
+            displayName: { type: [string, 'null'] }
+
+    SetupLinkSubject:
+      type: object
+      description: The little that may be known before anyone has authenticated.
+      properties:
+        username: { type: string }
+        displayName: { type: [string, 'null'] }
+        purpose: { type: string, enum: [setup, reset] }
+        expiresAt: { type: string }
 
     ReadinessReport:
       type: object

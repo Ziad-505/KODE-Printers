@@ -26,6 +26,8 @@ export const ERROR_CODES = {
   ACCOUNT_LOCKED: 423,
   PASSWORD_CHANGE_REQUIRED: 403,
   PASSWORD_POLICY_VIOLATION: 400,
+  /** A set-password link that is unknown, already used, or past its expiry. */
+  SETUP_LINK_INVALID: 410,
   FORBIDDEN: 403,
 
   // Resources

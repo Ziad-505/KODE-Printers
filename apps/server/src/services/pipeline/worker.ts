@@ -23,6 +23,7 @@ import {
   needsOfficeConversion,
   officeToPdf,
   pdfToPostScript,
+  printerAcceptsPdf,
   requiredStage,
   stage,
   textToPdfStrict,
@@ -211,8 +212,17 @@ async function processJob(job: DequeuedJob): Promise<void> {
       return;
     }
 
-    /* [7] greyscale -------------------------------------------------------- */
-    if (options.colorMode === 'grayscale') {
+       /* [8] PDF → PostScript, only where the device cannot take PDF ---------- */
+    const acceptsPdf = printerAcceptsPdf(printer);
+
+    const wantsGrayscale = options.colorMode === 'grayscale';
+
+    /* [7] greyscale -----------------------------------------------------
+     * Only run as its own pdfwrite pass when the device takes PDF directly.
+     * When the device needs PostScript, the Gray conversion is folded into
+     * that single ps2write pass below instead of stacking two Ghostscript
+     * invocations — see the comment on pdfToPostScript for why. */
+    if (wantsGrayscale && acceptsPdf) {
       content = await stage('grayscale', content, () => toGrayscale(content, job.id), degradations);
     }
 
@@ -222,17 +232,12 @@ async function processJob(job: DequeuedJob): Promise<void> {
       content = await applyWatermark(content, stamp);
     }
 
-    /* [8] PDF → PostScript, only where the device cannot take PDF ---------- */
-    const acceptsPdf =
-      printer.capabilities.formats.length === 0 ||
-      printer.capabilities.formats.includes('application/pdf');
-
     if (!acceptsPdf) {
       const converted = await stage(
         'pdf-to-postscript',
         content,
         async () => {
-          const ps = await pdfToPostScript(content, job.id);
+          const ps = await pdfToPostScript(content, job.id, { grayscale: wantsGrayscale });
           // تحقق إن الناتج PostScript حقيقي قبل ما نبعته
           if (!ps.subarray(0, 2).toString('latin1').startsWith('%!')) {
             throw new Error('Ghostscript produced invalid PostScript output');

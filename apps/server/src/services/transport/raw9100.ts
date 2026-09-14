@@ -2,12 +2,12 @@ import { Socket } from 'node:net';
 import { AppError } from '@kode/shared';
 import { subsystem } from '../../utilities/logger.js';
 import {
-  FRAMING_ORDER,
   frameDocument,
+  getFramingOrder,
   guardRawContent,
   type FramingStrategy,
   type PjlOptions,
-} from './pjl.js';
+} from './pjl.js'
 
 const log = subsystem('transport:raw9100');
 
@@ -34,6 +34,8 @@ export interface RawSendOptions {
   pjl: PjlOptions;
   /** Framing to use. Omit to run the fallback ladder. */
   framing?: FramingStrategy;
+  /** Vendor token (e.g. from IPP `printer-make-and-model`), used to order the ladder. */
+  vendor?: string | null;
   connectTimeoutMs?: number;
   writeTimeoutMs?: number;
 }
@@ -65,7 +67,7 @@ export async function sendRaw(options: RawSendOptions): Promise<RawSendResult> {
     });
   }
 
-  const ladder = options.framing ? [options.framing] : FRAMING_ORDER;
+    const ladder = options.framing ? [options.framing] : getFramingOrder(options.vendor);
   let lastError: unknown;
 
   for (const framing of ladder) {

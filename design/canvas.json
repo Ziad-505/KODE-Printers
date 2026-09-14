@@ -1,8 +1,22 @@
 {
   "artboards": [
     { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 844, "title": "Print composer" },
-    { "file": "LargeJob.dc.html", "x": 510, "y": 0, "w": 390, "h": 844, "title": "Large job — confirm" },
-    { "file": "JobStrip.dc.html", "x": 1020, "y": 0, "w": 390, "h": 844, "title": "Live job strip" },
+    {
+      "file": "LargeJob.dc.html",
+      "x": 510,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Large job — confirm"
+    },
+    {
+      "file": "JobStrip.dc.html",
+      "x": 1020,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Live job strip"
+    },
     { "file": "QrArrival.dc.html", "x": 0, "y": 1140, "w": 390, "h": 844, "title": "QR arrival" },
     { "file": "Scans.dc.html", "x": 510, "y": 1140, "w": 390, "h": 844, "title": "Scan inbox" },
     { "file": "Fleet.dc.html", "x": 1020, "y": 1140, "w": 390, "h": 844, "title": "Fleet board" },

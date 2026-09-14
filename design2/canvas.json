@@ -1,43 +1,75 @@
 {
   "artboards": [
-    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1440, "h": 960, "title": "Dashboard — web" },
-    { "file": "Mobile.dc.html", "x": 1530, "y": 0, "w": 390, "h": 844, "title": "Dashboard — mobile" }
+    { "file": "Login.dc.html", "x": 0, "y": 0, "w": 1440, "h": 960, "title": "Sign in — web" },
+    {
+      "file": "SetPassword.dc.html",
+      "x": 1530,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Set your password — mobile"
+    },
+    { "file": "Main.dc.html", "x": 0, "y": 1220, "w": 1440, "h": 960, "title": "Home — web" },
+    {
+      "file": "Mobile.dc.html",
+      "x": 1530,
+      "y": 1220,
+      "w": 390,
+      "h": 844,
+      "title": "Home — mobile"
+    },
+    { "file": "People.dc.html", "x": 0, "y": 2440, "w": 1440, "h": 960, "title": "People — web" },
+    {
+      "file": "NewAccount.dc.html",
+      "x": 1530,
+      "y": 2440,
+      "w": 1440,
+      "h": 960,
+      "title": "Account created — copy link"
+    }
   ],
   "annotations": [
     {
-      "id": "palette",
+      "id": "auth-row",
       "x": 0,
-      "y": -290,
-      "w": 700,
-      "text": "THE PALETTE\n\nBone #FAF7F2 page, white cards, sand #F2ECE3 fills, taupe #E6DED2 rules, warm ink #241F1A. Nothing is pure grey — every neutral is warmed, which is what stops it reading as a generic admin panel.\n\nColour is rationed. KODE blue #2150A0 appears only on the mark and the single primary action. Status uses muted naturals rather than signal colours: sage #5F7A5A ready, ochre #B8862B attention, brick #A9524A stopped, clay #B0764F for scans and anything needing a claim."
+      "y": -300,
+      "w": 900,
+      "text": "SIGNING IN\n\nThe mark floats above the card and drifts gently; two more sit far back in the warm ground, barely there, moving on a slower cycle. Nothing spins or bounces — it should feel like the page is breathing.\n\nNo sign-up link, because nobody signs themselves up. If you have no account, an administrator makes one and sends you a link."
     },
     {
-      "id": "type",
-      "x": 730,
-      "y": -290,
-      "w": 710,
-      "text": "THE TYPE\n\nInstrument Serif for the greeting and every headline figure — it is what makes the dashboard feel considered rather than generated. Montserrat carries all interface text, so the brand's own typeface still does the work everywhere a person reads a label.\n\nSerif is used sparingly and only for numbers and page titles. Used on body text it would read as a magazine, not a tool."
-    },
-    {
-      "id": "data",
+      "id": "setpw-note",
       "x": 1530,
-      "y": -290,
+      "y": -300,
       "w": 390,
-      "text": "EVERY FIGURE IS REAL\n\nAll four tiles, the series and the fleet panel come from GET /stats/overview and the printer list — impressions, estimated cost in EGP, scans with an unclaimed count, sheets saved by duplex.\n\nThe two-line chart separates app jobs from walk-up use, because the backend refuses to call the second one printing."
+      "text": "What the person sees when they tap the link you sent them. Their name is already there, so they know it is really for them.\n\nOne rule, stated once: at least 12 characters, and a short sentence is suggested rather than a list of symbol requirements."
     },
     {
-      "id": "honesty",
+      "id": "home-row",
       "x": 0,
-      "y": 1010,
-      "w": 700,
-      "text": "The coverage note in the lower right is not decoration — it is coverageNote from the summary response, rendered where the totals are, in the same weight as everything else. A caveat behind a tooltip does not exist on a phone.\n\nWalk-up rows say \"Device activity\", never \"print\", which is what the backend's walkupReportLabel is for."
+      "y": 1030,
+      "w": 900,
+      "text": "HOME — NOW WITH THE GRAPH, AND NO MONEY\n\nCost is gone everywhere, as you asked. The third figure is Waiting to print instead, which is the thing someone actually wants to know.\n\nThe graph is two soft curves: what people sent from the app, and what was done standing at the machine. Those two are genuinely different things in the data, and the shape of the gap between them is the most useful thing on the page.\n\nSpacing is the same everywhere now — 20px between cards, 18px corners, 22-24px inside them, one soft shadow. Every page in the build will use that same rhythm."
     },
     {
       "id": "mobile-note",
       "x": 1530,
-      "y": 890,
+      "y": 1030,
       "w": 390,
-      "text": "The mobile view is the same information, re-ranked rather than re-designed: greeting and the print action first, four tiles in a 2×2, the chart compressed to a sparkline, and the fleet cut to the printers that need something.\n\nThe broken printer sorts to the top in both views."
+      "text": "Same page, reordered for a thumb: the big blue action first, then whatever is wrong, then the numbers, the graph, and the printers.\n\nOnly the printers that need something are listed."
+    },
+    {
+      "id": "accounts-row",
+      "x": 0,
+      "y": 2250,
+      "w": 900,
+      "text": "ACCOUNTS — EXACTLY THE FLOW YOU DESCRIBED\n\nCreate an account, get a link, press Copy link, send it however you normally reach that person. No email server involved, no password typed by you, nothing to remember.\n\nWaiting to set a password is the list of people who have a link out. Each row copies its link again, makes a fresh one if it went stale, or removes the account.\n\nA forgotten password is the same three moves: the menu beside their name makes a reset link, you copy it, you send it. That link signs them out everywhere the moment it is made."
+    },
+    {
+      "id": "backend-note",
+      "x": 950,
+      "y": 2250,
+      "w": 490,
+      "text": "This needs a small piece of backend that does not exist yet: a table of single-use tokens, and endpoints to make one, redeem it, and revoke it. Half a day, no email server, no new dependency.\n\nEverything else on these screens is already there — the two roles, per-person printer permissions, forced password change, and sessions ending the moment an account is turned off."
     }
   ],
   "launch": { "view": "canvas" }

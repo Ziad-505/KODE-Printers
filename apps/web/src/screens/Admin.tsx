@@ -4,6 +4,7 @@ import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AppSettings, AuditEntry, Paginated, Printer, Zone, User } from '@kode/shared';
 import { api, ApiError, qs } from '../lib/api.js';
+import { printerCondition } from '../lib/plain.js';
 import {
   Badge,
   Button,
@@ -31,7 +32,7 @@ import {
 export function Admin(): ReactElement {
   return (
     <>
-      <PageHeader eyebrow="Administration" title="Manage the system" />
+      <PageHeader title="Settings" subtitle="Printers, zones, access and the audit trail." />
 
       <nav
         className="row row--wrap"
@@ -40,7 +41,10 @@ export function Admin(): ReactElement {
       >
         {[
           { to: 'printers', label: 'Printers' },
-          { to: 'users', label: 'People' },
+          // Accounts and set-password links live on People. This tab is only
+          // for changing who may use which printer after the fact, so it says
+          // that rather than competing for the same name.
+          { to: 'users', label: 'Printer access' },
           { to: 'zones', label: 'Zones' },
           { to: 'settings', label: 'Settings' },
           { to: 'audit', label: 'Audit log' },
@@ -174,7 +178,7 @@ function AdminPrinters(): ReactElement {
                     )}
                   </td>
                   <td>
-                    <StatusBadge status={printer.status} reasons={printer.stateReasons} />
+                    <StatusBadge status={printer.status} label={printerCondition(printer).text} />
                   </td>
                   <td>
                     <div

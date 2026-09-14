@@ -8,23 +8,6 @@ import { runSandboxed, withTempDir } from './sandbox.js';
 
 const log = subsystem('pipeline:convert');
 
-/**
- * Document conversion (§B10.3).
- *
- * The governing behaviour, preserved from the delivered build because it is
- * right: **every stage is best-effort**. A failed stage falls back to the
- * previous stage's output rather than failing the job. Someone printing a
- * slightly malformed spreadsheet gets their pages, not an error.
- *
- * What changes here are the three defects §B10.3 names:
- *   GAP-16 — concurrent `soffice` invocations collided on a shared profile lock
- *            and the second silently hung. Every invocation now gets its own
- *            `-env:UserInstallation` directory.
- *   GAP-17 — no timeouts. Handled in `sandbox.ts`.
- *   GAP-20 — no isolation. Also `sandbox.ts`.
- */
-
-/** Formats LibreOffice must handle before anything can be sent to a printer. */
 const OFFICE_EXTENSIONS = new Set([
   'doc',
   'docx',
@@ -53,18 +36,9 @@ export function isImage(filename: string): boolean {
 export interface ConversionOutcome {
   content: Buffer;
   contentType: string;
-  /** Stages that failed and fell back, for `jobs.notes`. */
   degradations: string[];
 }
 
-/**
- * Office or image → PDF via headless LibreOffice.
- *
- * The `-env:UserInstallation` flag is the fix for GAP-16 and is not optional.
- * Without it, two concurrent conversions contend for `~/.config/libreoffice`
- * and the loser either hangs until the timeout or exits zero having produced
- * nothing — the second being far worse, because it looks like success.
- */
 export async function officeToPdf(
   input: Buffer,
   originalFilename: string,
@@ -108,15 +82,6 @@ export async function officeToPdf(
   });
 }
 
-/**
- * Converts a PDF to greyscale with Ghostscript.
- *
- * Done server-side rather than relying on the device because it is the one
- * place the outcome is certain. A `print-color-mode: monochrome` attribute is
- * honoured by IPP devices, but over RAW the equivalent PJL line is advisory —
- * and a colour page printed on a colour device costs roughly ten times a mono
- * one, so "probably mono" is not good enough for a cost report.
- */
 export async function toGrayscale(input: Buffer, jobId: number): Promise<Buffer> {
   return withTempDir(`gs-gray-${jobId}`, async (dir) => {
     const inputPath = join(dir, 'input.pdf');
@@ -132,10 +97,6 @@ export async function toGrayscale(input: Buffer, jobId: number): Promise<Buffer>
         '-dOverrideICC',
         '-dNOPAUSE',
         '-dBATCH',
-        // SAFER, like every other Ghostscript invocation here. It was NOSAFER,
-        // which disables the file-access restrictions on a parser pointed at an
-        // uploaded document — undoing most of what sandbox.ts is for. The ICC
-        // override above needs no such privilege.
         '-dSAFER',
         '-dQUIET',
         `-sOutputFile=${outputPath}`,
@@ -149,6 +110,28 @@ export async function toGrayscale(input: Buffer, jobId: number): Promise<Buffer>
   });
 }
 
+
+export function printerAcceptsPdf(printer: {
+  vendor: string | null;
+  model: string | null;
+  capabilities: { formats: readonly string[] };
+}): boolean {
+  const identity = `${printer.vendor ?? ''} ${printer.model ?? ''}`.toLowerCase();
+
+  const isAltaLink = identity.includes('altalink');
+  if (isAltaLink) {
+    return (
+      printer.capabilities.formats.length === 0 ||
+      printer.capabilities.formats.includes('application/pdf')
+
+  return (
+    printer.capabilities.formats.length === 0 ||
+    printer.capabilities.formats.includes('application/pdf')
+  );
+}
+
+
+
 /**
  * PDF → PostScript, for devices that do not accept `application/pdf`.
  *
@@ -157,7 +140,11 @@ export async function toGrayscale(input: Buffer, jobId: number): Promise<Buffer>
  * capabilities say PDF is supported, dropping a Ghostscript invocation from the
  * hot path.
  */
-export async function pdfToPostScript(input: Buffer, jobId: number): Promise<Buffer> {
+export async function pdfToPostScript(
+  input: Buffer,
+  jobId: number,
+  options: { grayscale?: boolean } = {},
+): Promise<Buffer> {
   return withTempDir(`gs-ps-${jobId}`, async (dir) => {
     const inputPath = join(dir, 'input.pdf');
     const outputPath = join(dir, 'output.ps');
@@ -167,6 +154,9 @@ export async function pdfToPostScript(input: Buffer, jobId: number): Promise<Buf
       command: config.convert.ghostscriptPath,
       args: [
         '-sDEVICE=ps2write',
+        ...(options.grayscale
+          ? ['-dProcessColorModel=/DeviceGray', '-sColorConversionStrategy=Gray', '-dOverrideICC']
+          : []),
         '-dNOPAUSE',
         '-dBATCH',
         '-dSAFER',
@@ -182,18 +172,6 @@ export async function pdfToPostScript(input: Buffer, jobId: number): Promise<Buf
   });
 }
 
-/**
- * Runs a conversion stage, falling back to the input on failure.
- *
- * The fallback is what makes the pipeline forgiving, and the recorded
- * degradation is what stops it being dishonest: a job that printed in colour
- * because greyscale conversion failed says so in its notes, so the cost report
- * is not quietly wrong.
- *
- * A timeout is re-thrown rather than swallowed. §B14 requires a hung conversion
- * to kill the process and fail the job cleanly — falling back would hand the
- * printer a document the pipeline never finished preparing.
- */
 export async function stage(
   name: string,
   input: Buffer,
@@ -210,23 +188,6 @@ export async function stage(
   }
 }
 
-/**
- * A stage whose output the device cannot do without.
- *
- * The fallback in `stage()` is right for an *enhancement*. A job that printed
- * in colour because greyscale conversion failed is still the document someone
- * asked for, and the recorded degradation keeps the cost report honest.
- *
- * It is wrong for a *format* conversion, and quietly so. A printer cannot
- * render OOXML: handing it raw `.docx` bytes produces a tray of garbage rather
- * than a document, so the fallback delivers nothing the user wanted while
- * reporting success. For plain text it is worse than useless, because raw text
- * on the RAW/9100 path is exactly the PJL injection surface ADR-015 exists to
- * close.
- *
- * So the three format-normalising stages fail the job instead, with a message
- * that names the file.
- */
 export async function requiredStage(
   name: string,
   filename: string,
@@ -245,21 +206,6 @@ export async function requiredStage(
   }
 }
 
-/**
- * Plain text to PDF, by whichever converter can manage it.
- *
- * Two are tried because they fail in different places. LibreOffice renders any
- * script the installed fonts cover, which on this image means Arabic and CJK;
- * pdf-lib's standard fonts are WinAnsi-encoded and throw on the first character
- * outside Latin-1, which for a club whose documents are not in English is a
- * routine input rather than an edge case. But LibreOffice is an OS binary a
- * host may not have and pdf-lib is always present, so each covers the other's
- * gap.
- *
- * If both fail the job fails. That is deliberate: the alternative is handing
- * the transport the original bytes, and plain text is the one payload a device
- * will interpret as instructions.
- */
 export async function textToPdfStrict(
   input: Buffer,
   filename: string,

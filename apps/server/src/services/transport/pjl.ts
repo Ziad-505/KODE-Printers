@@ -199,6 +199,34 @@ export const FRAMING_ORDER: readonly FramingStrategy[] = [
   'raw-only',
 ] as const;
 
+/**
+ * Vendors whose consumer/SMB device lines are known to treat unsolicited PJL
+ * as literal text instead of rejecting it — i.e. exactly the failure mode
+ * this ladder cannot detect via a socket-level signal (§B6.4 follow-up).
+ * Matched case-insensitively against the vendor token parsed from
+ * `printer-make-and-model`.
+ */
+const NO_FEEDBACK_TEXT_FALLBACK_VENDORS = new Set(['hp', 'hewlett-packard']);
+
+/**
+ * Picks the framing ladder to try, in order.
+ *
+ * For a vendor known to swallow bad PJL as plain text rather than resetting
+ * the connection, starting with `raw-only` means the *first* attempt is one
+ * whose success is actually observable (a well-formed PDF/PostScript either
+ * autosenses correctly or it doesn't) rather than betting the whole job on a
+ * framing we have no way to verify. PJL variants stay in the ladder after it,
+ * in case the device does want duplex/media set explicitly.
+ *
+ * Unknown or PJL-friendly vendors keep the original order.
+ */
+export function getFramingOrder(vendor?: string | null): readonly FramingStrategy[] {
+  if (vendor && NO_FEEDBACK_TEXT_FALLBACK_VENDORS.has(vendor.trim().toLowerCase())) {
+    return ['raw-only', 'pjl-plain', 'pjl-with-language'];
+  }
+  return FRAMING_ORDER;
+}
+
 export function frameDocument(
   document: Buffer,
   options: PjlOptions,

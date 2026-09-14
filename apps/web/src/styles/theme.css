@@ -1,32 +1,42 @@
 /**
  * KODE Printer — design tokens.
  *
- * The design language is derived from the mark itself rather than bolted on
- * beside it. Three properties of the KODE K do the work:
+ * A warm, quiet palette rather than a dark one. The people using this are on a
+ * reception desk or an office floor in daylight, and the screen they keep open
+ * all day should recede. Nothing here is a pure grey: every neutral is warmed,
+ * which is what stops a page of white cards reading like a stock admin panel.
  *
- *   · **The diagonal.** The K's shear runs at roughly 26.5°. That angle recurs
- *     as the accent on section headers, the cut on status chips, and the sweep
- *     behind the hero panel. One angle used consistently is what makes a set of
- *     screens feel drawn by the same hand.
+ * Colour is rationed deliberately. KODE blue appears on the mark, the active
+ * navigation item and the single most important action on a screen — and
+ * nowhere else. Status uses muted naturals (sage, ochre, brick) rather than
+ * signal brights, so a warning reads as information rather than an alarm.
  *
- *   · **The inline stroke.** The mark is a filled letterform with a hairline
- *     channel cut inside it. Surfaces echo that with a 1px inner highlight over
- *     a darker border — which is also what gives cards physical edges in dark
- *     mode without resorting to heavy drop shadows.
- *
- *   · **Weight contrast.** The logo is very heavy next to very light space.
- *     Display type is 800/900 with negative tracking; body text stays at 400.
- *     Nothing sits in between, because that middle is where interfaces start
- *     looking like a template.
- *
- * Dark is the primary theme. This is a tool people open on a phone while
- * standing next to a printer, often in a plant room or a back office, and a
- * white screen at arm's length in a dim corridor is genuinely unpleasant.
+ * The names are unchanged from the first build on purpose. Every screen and
+ * every component rule already reads through them, so the palette is a single
+ * substitution rather than a rewrite of forty files.
  */
+
+/**
+ * Figtree carries the interface: friendly without being childish, and legible
+ * at 13px on a cheap Android screen. Montserrat stays for the KODE lockup only
+ * — it is the brand's letterform and has no business setting body text.
+ *
+ * Both are self-hosted. The CSP is `default-src 'self'` with no external hosts,
+ * which is deliberate for an internal system: a font CDN is an outbound
+ * dependency on a network that may have no route to the internet.
+ */
+@font-face {
+  font-family: 'Figtree';
+  src:
+    local('Figtree'),
+    url('/fonts/figtree-variable.woff2') format('woff2-variations');
+  font-weight: 300 900;
+  font-display: swap;
+  font-style: normal;
+}
 
 @font-face {
   font-family: 'Montserrat';
-  /* Variable font: one file covers 400 through 900 rather than five requests. */
   src:
     local('Montserrat'),
     url('/fonts/montserrat-variable.woff2') format('woff2-variations');
@@ -38,147 +48,198 @@
 :root {
   /* ---------------------------------------------------------------- brand */
   --kode-blue: #2150a0;
-  --kode-blue-bright: #3a6fca;
+  --kode-blue-bright: #2f63bd;
   --kode-blue-deep: #173770;
-  --kode-gold: #fec015;
-  --kode-gold-deep: #e5a804;
+  /* Muted to ochre. The neon gold of the first build had nowhere to sit in a
+     palette this quiet, and a second loud colour undoes the rationing. */
+  --kode-gold: #c08a2e;
+  --kode-gold-deep: #a3741f;
 
-  --accent-orange: #f26202;
-  --accent-green: #059969;
-  --accent-electric: #0267f7;
-  --accent-violet: #5b3df5;
-  --accent-crimson: #d32f4b;
+  --accent-orange: #b0764f;
+  --accent-green: #4e8c63;
+  --accent-electric: #2150a0;
+  --accent-violet: #6b5ca5;
+  --accent-crimson: #c15a50;
 
   /* --------------------------------------------------------------- canvas */
-  /* Layered surfaces, not one flat background. Each step up is a real
-     elevation, so a modal over a card over the page reads without shadows. */
-  --surface-base: #0b0e16;
-  --surface-1: #11151f;
-  --surface-2: #161b26;
-  --surface-3: #1d2432;
-  --surface-4: #252d3d;
-  --surface-inset: #080b11;
+  /* Bone page, white cards, sand fills, taupe rules. Each step is a real
+     elevation so a modal over a card over the page reads without heavy shadow. */
+  --surface-base: #f6f4f0;
+  --surface-1: #ffffff;
+  --surface-2: #fcfaf7;
+  --surface-3: #f3f0ea;
+  --surface-4: #eae5dd;
+  --surface-inset: #f3f0ea;
 
-  /* The inline-stroke trick: a dark border with a lighter inner highlight. */
-  --border-subtle: rgb(255 255 255 / 6%);
-  --border-default: rgb(255 255 255 / 10%);
-  --border-strong: rgb(255 255 255 / 18%);
-  --inner-highlight: inset 0 1px 0 rgb(255 255 255 / 7%);
+  --border-subtle: #f2eee7;
+  --border-default: #eae5dd;
+  --border-strong: #ddd5c9;
+  /* The inline-stroke trick belonged to the dark build; on white it would be
+     invisible at best. Kept as a no-op so no rule has to be edited. */
+  --inner-highlight: 0 0 0 0 transparent;
 
   /* ------------------------------------------------------------------ ink */
-  --text-primary: #f2f5fa;
-  --text-secondary: #a8b3c7;
-  --text-tertiary: #6e7a92;
-  --text-inverse: #0b0e16;
+  --text-primary: #2b2722;
+  --text-secondary: #6b6459;
+  --text-tertiary: #9c948a;
+  --text-inverse: #ffffff;
 
   /* --------------------------------------------------------------- status */
-  --status-online: #16b979;
-  --status-degraded: #fec015;
-  --status-offline: #f0526d;
-  --status-unknown: #6e7a92;
+  --status-online: #4e8c63;
+  --status-degraded: #c08a2e;
+  --status-offline: #c15a50;
+  --status-unknown: #b5ac9f;
 
-  --severity-info: #4b86e8;
-  --severity-warning: #fec015;
-  --severity-critical: #f0526d;
+  --severity-info: #2150a0;
+  --severity-warning: #c08a2e;
+  --severity-critical: #c15a50;
 
   /* ---------------------------------------------------------------- shape */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  /* Rounder than the first build. 18px is the card, and it is what most of the
+     difference between "sharp" and "approachable" actually was. */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
   --radius-xl: 24px;
   --radius-pill: 999px;
 
-  /* The K's shear. Every diagonal in the interface uses this one value. */
   --kode-angle: 26.5deg;
   --kode-skew: -14deg;
 
   /* --------------------------------------------------------------- rhythm */
-  /* A 4px base. Not 8: printer cards and job rows carry a lot of small
-     metadata, and 8px steps force either cramped or wasteful. */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
-  --space-5: 1.5rem;
-  --space-6: 2rem;
-  --space-7: 3rem;
-  --space-8: 4rem;
+  --space-5: 1.25rem;
+  --space-6: 1.75rem;
+  --space-7: 2.5rem;
+  --space-8: 3.5rem;
 
   /* ------------------------------------------------------------ typography */
-  --font-display: 'Montserrat', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --font-body: 'Montserrat', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-display: 'Figtree', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-body: 'Figtree', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-brand: 'Montserrat', 'Segoe UI', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
-  --text-2xs: 0.6875rem;
-  --text-xs: 0.75rem;
-  --text-sm: 0.8125rem;
-  --text-base: 0.9375rem;
-  --text-lg: 1.0625rem;
-  --text-xl: 1.375rem;
-  --text-2xl: 1.75rem;
-  --text-3xl: 2.25rem;
-  --text-4xl: 3rem;
+  /**
+   * The scale, raised one step and anchored on 17px.
+   *
+   * It was anchored on 14.5px, which is a *desktop table* body size, and every
+   * other size followed it down: 11px labels on a phone, 13px inputs, 25px
+   * screen titles. Small dense type is the loudest signature of an admin
+   * template, and the whole interface inherited it from these nine lines.
+   *
+   * 17px is what iOS sets body text at, and it is not a stylistic preference —
+   * it is the size the platform's own legibility work landed on for a screen
+   * held at arm's length. The old `--text-lg` was already 17px, which is the
+   * clearest evidence the scale was simply shifted one step.
+   *
+   * Two hard floors now hold, and both fix real defects rather than taste:
+   *
+   *   · **Nothing below 13px.** `--text-2xs` was 11px and carried the supply
+   *     rows on the fleet board.
+   *   · **`--text-input` is 16px and is used by every field.** Mobile Safari
+   *     force-zooms the page whenever a focused input is smaller, and does not
+   *     zoom back — so every form left the app scrolled sideways on an iPhone.
+   */
+  --text-2xs: 0.8125rem; /* 13px — the floor */
+  --text-xs: 0.8125rem; /* 13px */
+  --text-sm: 0.9375rem; /* 15px */
+  --text-input: 1rem; /* 16px — never smaller, see above */
+  --text-base: 1.0625rem; /* 17px */
+  --text-lg: 1.1875rem; /* 19px */
+  --text-xl: 1.5rem; /* 24px */
+  --text-2xl: 1.875rem; /* 30px */
+  --text-3xl: 2.25rem; /* 36px */
+  --text-4xl: 3rem; /* 48px */
+
+  /* Large text needs tighter tracking or it reads as a blown-up small size.
+     This is most of the difference between a heading and a *title*. */
+  --tracking-title: -0.022em;
+  --tracking-tight: -0.015em;
 
   /* --------------------------------------------------------------- motion */
-  /* Spring-like easing. Linear motion reads as mechanical; this reads as
-     something with mass, which is what makes a panel feel like it arrived
-     rather than appeared. */
+  /**
+   * Two families, and the distinction matters more than the numbers.
+   *
+   * `--ease-out` is for things arriving: fast at the start, settling at the
+   * end, which is how an object that was already moving comes to rest.
+   * `--ease-spring` overshoots a little and is for things the user just did —
+   * a press, a toggle, a card appearing under their thumb. Overshoot on a
+   * *page* is nausea; overshoot on a *control* is life.
+   *
+   * Durations are short on purpose. Anything over ~300ms on an interface
+   * someone uses forty times a day stops being polish and starts being a wait.
+   */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-instant: 90ms;
   --duration-fast: 140ms;
   --duration-base: 220ms;
   --duration-slow: 420ms;
 
   /* ---------------------------------------------------------------- depth */
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
-  --shadow-md: 0 4px 16px -4px rgb(0 0 0 / 50%);
-  --shadow-lg: 0 16px 48px -12px rgb(0 0 0 / 65%);
-  --shadow-glow: 0 0 0 1px rgb(33 80 160 / 45%), 0 8px 32px -8px rgb(33 80 160 / 55%);
+  /* Soft and warm-tinted. On a light ground a neutral-black shadow reads grey
+     and dirty; tinting it to the ink colour keeps it part of the palette. */
+  --shadow-sm: 0 1px 2px rgb(43 39 34 / 4%);
+  --shadow-md: 0 8px 20px -12px rgb(43 39 34 / 10%);
+  --shadow-lg: 0 32px 64px -28px rgb(43 39 34 / 22%);
+  --shadow-glow: 0 12px 26px -14px rgb(33 80 160 / 55%);
 
   /* --------------------------------------------------------------- layout */
-  --nav-rail: 76px;
-  --nav-expanded: 248px;
+  /* A labelled sidebar, not an icon rail. The icons were never
+     self-describing, and a tooltip is not an answer on a touchscreen. */
+  --nav-rail: 240px;
+  --nav-expanded: 240px;
   --bottom-nav: 68px;
-  --header-height: 64px;
+  --header-height: 68px;
   --content-max: 1440px;
 }
 
 /**
- * Light theme.
+ * Dark theme.
  *
- * Not an inversion — the blue has to stay a *brand* colour rather than becoming
- * a link colour, so surfaces shift to cool near-whites and the blue keeps its
- * saturation instead of being lightened into pastel.
+ * Kept for the plant room and the late shift, and it is genuinely a second
+ * palette rather than an inversion: the blue has to stay a *brand* colour
+ * instead of drifting into looking like a link, so surfaces move to warm
+ * near-blacks while the blue keeps its saturation.
  */
-:root[data-theme='light'] {
-  --surface-base: #f2f5fa;
-  --surface-1: #ffffff;
-  --surface-2: #fbfcfe;
-  --surface-3: #f2f5fa;
-  --surface-4: #e8edf6;
-  --surface-inset: #e8edf6;
+:root[data-theme='dark'] {
+  --surface-base: #171512;
+  --surface-1: #1e1b17;
+  --surface-2: #232019;
+  --surface-3: #2b2721;
+  --surface-4: #363029;
+  --surface-inset: #131110;
 
-  --border-subtle: rgb(14 26 51 / 7%);
-  --border-default: rgb(14 26 51 / 12%);
-  --border-strong: rgb(14 26 51 / 20%);
-  --inner-highlight: inset 0 1px 0 rgb(255 255 255 / 90%);
+  --border-subtle: rgb(255 255 255 / 6%);
+  --border-default: rgb(255 255 255 / 10%);
+  --border-strong: rgb(255 255 255 / 18%);
+  --inner-highlight: inset 0 1px 0 rgb(255 255 255 / 6%);
 
-  --text-primary: #161b26;
-  --text-secondary: #4c566d;
-  --text-tertiary: #68738c;
-  --text-inverse: #ffffff;
+  --text-primary: #f4f1ec;
+  --text-secondary: #b6ada0;
+  --text-tertiary: #857c70;
+  --text-inverse: #171512;
 
-  --status-online: #04824f;
-  --status-degraded: #a97b02;
-  --status-offline: #c62841;
-  --severity-info: #2150a0;
-  --severity-warning: #a97b02;
-  --severity-critical: #c62841;
+  --kode-blue: #3a6fca;
+  --kode-blue-bright: #5b8ce0;
 
-  --shadow-sm: 0 1px 2px rgb(14 26 51 / 8%);
-  --shadow-md: 0 4px 16px -4px rgb(14 26 51 / 12%);
-  --shadow-lg: 0 16px 48px -12px rgb(14 26 51 / 18%);
-  --shadow-glow: 0 0 0 1px rgb(33 80 160 / 25%), 0 8px 32px -8px rgb(33 80 160 / 25%);
+  --status-online: #6aa87d;
+  --status-degraded: #d6a444;
+  --status-offline: #d97b71;
+  --status-unknown: #857c70;
+
+  --severity-info: #5b8ce0;
+  --severity-warning: #d6a444;
+  --severity-critical: #d97b71;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
+  --shadow-md: 0 8px 20px -12px rgb(0 0 0 / 55%);
+  --shadow-lg: 0 32px 64px -28px rgb(0 0 0 / 70%);
+  --shadow-glow: 0 12px 26px -14px rgb(58 111 202 / 60%);
 }
 
 /* -------------------------------------------------------------------- base */

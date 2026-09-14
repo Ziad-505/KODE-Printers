@@ -18,6 +18,7 @@ import {
 import { BLOCKING_STATE_REASONS } from '../../packages/shared/src/constants.js';
 import { verifyMagicBytes } from '../../apps/server/src/services/pipeline/prepare.js';
 import { csvField } from '../../apps/server/src/utilities/csv.js';
+import { generateSetupToken } from '../../apps/server/src/services/auth/hash.js';
 
 /**
  * Printer-safety and input-handling tests.
@@ -339,5 +340,32 @@ describe('CSV export escaping', () => {
 
   it('leaves an ordinary value alone', () => {
     expect(csvField('Reception MFP')).toBe('Reception MFP');
+  });
+});
+
+/**
+ * Set-password link tokens.
+ *
+ * The shape matters beyond aesthetics: the value goes in a URL path and is
+ * pasted by hand into a chat window, so `+`, `/` and `=` would all be mangled
+ * somewhere between the administrator and the person receiving it.
+ */
+describe('set-password link tokens', () => {
+  it('is URL-safe, so it survives being pasted into a chat', () => {
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      const { token } = generateSetupToken();
+      expect(token).toMatch(/^[A-Za-z0-9_-]+$/);
+      expect(token.length).toBeGreaterThanOrEqual(40);
+    }
+  });
+
+  it('never repeats, and never stores what it hands out', () => {
+    const first = generateSetupToken();
+    const second = generateSetupToken();
+
+    expect(first.token).not.toBe(second.token);
+    // What is stored must not be the credential itself.
+    expect(first.hash).not.toBe(first.token);
+    expect(first.hash).toHaveLength(64);
   });
 });

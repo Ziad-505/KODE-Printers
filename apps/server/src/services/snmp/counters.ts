@@ -1,7 +1,13 @@
-import type { PrinterStatus } from '@kode/shared';
+import { isBlockingReason, type PrinterStatus } from '@kode/shared';
 import type { PrinterWithSecrets } from '../../models/printers.js';
 import { asInteger, asString, snmpGet, snmpWalk } from './client.js';
-import { decodeErrorState, HOST_RESOURCES, PRINTER_MIB } from './oids.js';
+import {
+  decodeErrorState,
+  HOST_RESOURCES,
+  PRINTER_MIB,
+  SUPPLY_UNITS,
+  unitIsPercent,
+} from './oids.js';
 
 /**
  * Counter, supply and state reads over SNMP.
@@ -143,18 +149,15 @@ export async function readState(printer: PrinterWithSecrets): Promise<StateReadi
   const octets = Buffer.isBuffer(raw) ? raw : Buffer.from(String(raw), 'latin1');
   const reasons = decodeErrorState(octets);
 
-  const BLOCKING = new Set([
-    'media-empty',
-    'media-jam',
-    'door-open',
-    'marker-supply-empty',
-    'offline',
-    'service-request',
-    'input-tray-missing',
-    'output-area-full',
-  ]);
-
-  const blocked = reasons.some((reason) => BLOCKING.has(reason));
+  /* One blocking set, not two.
+   *
+   * There used to be a second copy of the blocking list here, and it had
+   * already drifted from the shared one — it carried `service-request`, which
+   * fires on a 7835 for a maintenance reminder the device itself describes as
+   * non-blocking. `decodeErrorState` now emits the same suffixed keywords the
+   * IPP path produces, so both go through `isBlockingReason` and there is one
+   * definition of "do not send to this device" in the codebase. */
+  const blocked = reasons.some(isBlockingReason);
   return {
     status: blocked ? 'offline' : reasons.length > 0 ? 'degraded' : 'online',
     stateReasons: reasons,
@@ -169,6 +172,8 @@ export interface SupplyReading {
   colorant: string | null;
   level: number | null;
   maxLevel: number | null;
+  /** prtMarkerSuppliesSupplyUnit as a keyword — see `SUPPLY_UNITS`. */
+  unit: string | null;
 }
 
 /**
@@ -184,13 +189,15 @@ export interface SupplyReading {
  * nonsense that makes an operator ignore the dashboard.
  */
 export async function readSupplies(printer: PrinterWithSecrets): Promise<SupplyReading[]> {
-  const [descriptions, levels, capacities, colorantIndexes, colorantValues] = await Promise.all([
-    snmpWalk(printer, PRINTER_MIB.suppliesDescription),
-    snmpWalk(printer, PRINTER_MIB.suppliesLevel),
-    snmpWalk(printer, PRINTER_MIB.suppliesMaxCapacity),
-    snmpWalk(printer, PRINTER_MIB.suppliesColorantIndex),
-    snmpWalk(printer, PRINTER_MIB.markerColorantValue),
-  ]);
+  const [descriptions, levels, capacities, units, colorantIndexes, colorantValues] =
+    await Promise.all([
+      snmpWalk(printer, PRINTER_MIB.suppliesDescription),
+      snmpWalk(printer, PRINTER_MIB.suppliesLevel),
+      snmpWalk(printer, PRINTER_MIB.suppliesMaxCapacity),
+      snmpWalk(printer, PRINTER_MIB.suppliesUnit),
+      snmpWalk(printer, PRINTER_MIB.suppliesColorantIndex),
+      snmpWalk(printer, PRINTER_MIB.markerColorantValue),
+    ]);
 
   const indexOf = (oid: string): number => {
     const last = oid.split('.').at(-1);
@@ -209,7 +216,15 @@ export async function readSupplies(printer: PrinterWithSecrets): Promise<SupplyR
       colorant: null,
       level: null,
       maxLevel: null,
+      unit: null,
     });
+  }
+
+  for (const entry of units) {
+    const supply = byIndex.get(indexOf(entry.oid));
+    if (!supply) continue;
+    const code = asInteger(entry.value);
+    supply.unit = code === null ? null : (SUPPLY_UNITS[code] ?? null);
   }
 
   for (const entry of levels) {
@@ -249,8 +264,48 @@ export async function readSupplies(printer: PrinterWithSecrets): Promise<SupplyR
   return [...byIndex.values()].sort((a, b) => a.index - b.index);
 }
 
-/** Percentage remaining, or null where the device does not quantify it. */
-export function supplyPercent(supply: SupplyReading): number | null {
+/**
+ * The fraction of the supply's rated capacity that remains, 0–1.
+ *
+ * Internal only: it drives the low-supply threshold and the burn-rate forecast,
+ * where it is valid whatever the unit, because it is compared against itself
+ * over time. It is *not* a figure to show anyone — see `supplyPercent`.
+ */
+export function supplyFraction(supply: SupplyReading): number | null {
   if (supply.level === null || supply.maxLevel === null || supply.maxLevel <= 0) return null;
-  return Math.round((supply.level / supply.maxLevel) * 1000) / 10;
+  return supply.level / supply.maxLevel;
+}
+
+/**
+ * Percentage remaining, **only where the device reports one**.
+ *
+ * This used to be `level / maxCapacity` for every supply, which silently
+ * assumes the two are the same quantity. RFC 3805 does not say they are — that
+ * is what `prtMarkerSuppliesSupplyUnit` is for — and a WorkCentre 7835 proves
+ * they are not: its toners report `impressions`, where the level is estimated
+ * *pages remaining* (260) and the maximum is the cartridge's *rated yield*
+ * (26000). The division gave 1% while the printer's own page said
+ * "10% — Reorder — 268 pages — 4 days".
+ *
+ * Its drums report `percent` with a maximum of 100, and there the division is
+ * the identity, which is why those numbers always did match the device.
+ *
+ * So: percent for percent, and for a count the caller shows the count. A figure
+ * that contradicts the display on the machine is worse than no figure, because
+ * the person standing at the printer believes the machine.
+ */
+export function supplyPercent(supply: SupplyReading): number | null {
+  if (supply.level === null) return null;
+
+  if (unitIsPercent(supply.unit)) return Math.round(supply.level * 10) / 10;
+
+  /* No unit reported at all. A maximum of exactly 100 is the near-universal
+   * convention for "this level is already a percentage", and reading it that
+   * way is right far more often than dividing blind. Anything else stays null:
+   * we do not know what we are dividing. */
+  if (supply.unit === null && supply.maxLevel === 100) {
+    return Math.round(supply.level * 10) / 10;
+  }
+
+  return null;
 }

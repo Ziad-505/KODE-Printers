@@ -2,6 +2,7 @@ import {
   computeCo2Grams,
   computeCost,
   type AppSettings,
+  type JobSource,
   type LeaderboardRow,
   type TimeSeriesPoint,
   type UsageSummary,
@@ -31,6 +32,8 @@ export interface StatsScope {
   zoneId?: number | undefined;
   printerId?: number | undefined;
   userId?: number | undefined;
+  /** Narrows to one source, so app jobs and walk-ups can be plotted apart. */
+  source?: JobSource | undefined;
   /** INV-01 — non-admin callers are scoped to their permitted printers. */
   permittedPrinterIds?: readonly number[] | undefined;
 }
@@ -43,6 +46,7 @@ function scopeWhere(scope: StatsScope, alias = 'j'): WhereBuilder {
   where.addIf(scope.zoneId, `${alias}.zone_id = ?`, scope.zoneId);
   where.addIf(scope.printerId, `${alias}.printer_id = ?`, scope.printerId);
   where.addIf(scope.userId, `${alias}.user_id = ?`, scope.userId);
+  where.addIf(scope.source, `${alias}.source = ?`, scope.source);
   if (scope.permittedPrinterIds) {
     where.add(`${alias}.printer_id = ANY(?::int[])`, [...scope.permittedPrinterIds]);
   }

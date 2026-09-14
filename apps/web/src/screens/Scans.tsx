@@ -1,7 +1,6 @@
-import type { ReactElement } from 'react';
+import type { CSSProperties, ReactElement } from 'react';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import { formatBytes, type Paginated, type Printer, type Scan } from '@kode/shared';
 import { api, ApiError, qs } from '../lib/api.js';
 import { useAuth } from '../lib/auth.js';
@@ -93,7 +92,6 @@ export function Scans(): ReactElement {
   return (
     <>
       <PageHeader
-        eyebrow="Scans"
         title="Scan inbox"
         subtitle="Scans arriving from club printers. Claim one to keep it."
         actions={
@@ -172,12 +170,7 @@ export function Scans(): ReactElement {
       ) : (
         <div className="grid-cards">
           {scans.map((scan, index) => (
-            <motion.div
-              key={scan.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.28, delay: Math.min(index * 0.03, 0.24) }}
-            >
+            <div key={scan.id} style={{ '--kp-index': index } as CSSProperties}>
               <ScanCard
                 scan={scan}
                 isMine={scan.userId === user?.id}
@@ -185,7 +178,7 @@ export function Scans(): ReactElement {
                 onClaim={() => claim.mutate(scan.id)}
                 claiming={claim.isPending && claim.variables === scan.id}
               />
-            </motion.div>
+            </div>
           ))}
         </div>
       )}

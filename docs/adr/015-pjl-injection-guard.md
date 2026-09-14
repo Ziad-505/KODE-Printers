@@ -5,7 +5,7 @@
 ## Context
 
 RAW/9100 is a TCP socket the device parses. Anything written to it is
-interpreted, and PJL directives inside a *document* are indistinguishable from
+interpreted, and PJL directives inside a _document_ are indistinguishable from
 PJL the server wrote. A plain-text file whose own content is
 
 ```
@@ -39,12 +39,12 @@ structurally.
 Text is refused rather than stripped. Silently removing lines produces a print
 that differs from what was submitted, which is worse than a clear refusal.
 
-A legitimate document that merely *mentions* `@PJL` in its text is not affected:
+A legitimate document that merely _mentions_ `@PJL` in its text is not affected:
 by then it is a PDF, and the guard passes anything it can prove is wrapped.
 
 ## Rejected
 
-*Trust the pipeline to always convert.* It does today. The guard is what makes
+_Trust the pipeline to always convert._ It does today. The guard is what makes
 that a property rather than a habit, and the one path that could regress —
 a conversion falling back to its input — is exactly the path that kept the PDF
 label all the way to the socket.

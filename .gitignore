@@ -17,11 +17,22 @@ kodeBranding/
 !.env.example
 
 # Runtime data. The uploads directory holds member documents.
-/data/
-/apps/server/uploads/
-/apps/server/scans/
-/apps/server/logs/
-/apps/collector/spool/
+#
+# Unanchored on purpose. These were written as `/data/` and
+# `/apps/server/uploads/`, which are repo-root paths that nothing ever writes
+# to: UPLOAD_DIR and SCAN_DIR default to `./data/uploads` and `./data/scans`
+# *relative to the workspace the process runs in*, so `npm run dev -w
+# @kode/server` puts them in `apps/server/data/`. Neither rule matched, and
+# eighteen scanned member documents were committed before anyone noticed.
+#
+# `**/` on purpose, and it is the part that is easy to get wrong twice. A
+# pattern containing a slash anywhere but the end — `data/uploads/` — is
+# *already* anchored to the directory holding the .gitignore, so it matches only
+# `<root>/data/uploads/`. Only a leading `**/` makes it match at any depth.
+**/data/uploads/
+**/data/scans/
+**/data/spool/
+**/logs/
 
 # Editors / OS
 .vscode/*

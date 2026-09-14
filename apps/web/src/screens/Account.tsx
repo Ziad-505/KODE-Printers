@@ -94,7 +94,6 @@ export function Account(): ReactElement {
   return (
     <>
       <PageHeader
-        eyebrow="Account"
         title={user?.displayName ?? user?.username ?? 'Your account'}
         subtitle={user?.department ?? undefined}
         actions={<Badge tone={user?.role === 'admin' ? 'accent' : 'default'}>{user?.role}</Badge>}

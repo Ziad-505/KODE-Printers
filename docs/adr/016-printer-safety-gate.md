@@ -48,9 +48,9 @@ in the audit record.
 
 ## Rejected
 
-*Rely on the device to refuse.* Over RAW there is no feedback channel at all, so
+_Rely on the device to refuse._ Over RAW there is no feedback channel at all, so
 "the device will handle it" means "nobody will know".
 
-*A global page cap only.* The estate is not uniform: the A3 device in the academy
+_A global page cap only._ The estate is not uniform: the A3 device in the academy
 office legitimately runs 500-page tournament draws; the reception printer never
 should. Hence the per-printer override.

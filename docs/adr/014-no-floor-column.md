@@ -24,5 +24,5 @@ not.
 
 ## Rejected
 
-*Create it and leave it null.* Faithful to the document, useless in the estate
+_Create it and leave it null._ Faithful to the document, useless in the estate
 it describes.

@@ -4,6 +4,7 @@ import {
   AppError,
   errors,
   idSchema,
+  setupLinkSchema,
   setUserPasswordSchema,
   setUserPrintersSchema,
   userCreateSchema,
@@ -31,7 +32,9 @@ import {
 import { auditedMutation } from '../services/audit.js';
 import { events } from '../services/events.js';
 import { assertPasswordAcceptable } from '../services/auth/index.js';
+import { createSetupLink } from '../services/auth/setupLinks.js';
 import { hashPassword } from '../services/auth/hash.js';
+import { clientIp } from '../middlewares/context.js';
 
 export const usersRouter = Router();
 
@@ -67,8 +70,17 @@ usersRouter.post(
     const actor = actorOf(req);
     const input = body(req, userCreateSchema);
 
-    assertPasswordAcceptable(input.password, input.username);
-    const passwordHash = await hashPassword(input.password);
+    /* No password unless one was explicitly supplied.
+     *
+     * An administrator who types a password has to transmit it, and the only
+     * channels available are the ones this system cannot audit. The default
+     * path creates the account with no password at all and mints a single-use
+     * link below, which the administrator copies and sends. */
+    let passwordHash: string | null = null;
+    if (input.password !== undefined) {
+      assertPasswordAcceptable(input.password, input.username);
+      passwordHash = await hashPassword(input.password);
+    }
 
     const user = await auditedMutation(
       async (tx) => {
@@ -79,7 +91,8 @@ usersRouter.post(
           passwordHash,
           role: input.role,
           department: input.department ?? null,
-          mustChangePassword: input.mustChangePassword,
+          // Nothing to force a rotation of when they will pick it themselves.
+          mustChangePassword: passwordHash === null ? false : input.mustChangePassword,
         });
 
         if (input.printerIds.length > 0) {
@@ -94,7 +107,48 @@ usersRouter.post(
       { req, action: 'user.create', entityType: 'user', entityId: (created) => created.id },
     );
 
-    res.status(201).json(user);
+    /* The link is minted after the account commits, not inside it.
+     *
+     * It is a separate, separately audited act, and a failure here must leave a
+     * usable account rather than rolling back a person who was created
+     * correctly. An administrator who ends up without a link presses "New
+     * link"; one who ends up without an account has to start again. */
+    const setupLink =
+      passwordHash === null
+        ? await createSetupLink(user.id, 'setup', actor, {
+            ip: clientIp(req),
+            userAgent: req.get('user-agent')?.slice(0, 300) ?? null,
+            requestId: req.requestId,
+          })
+        : null;
+
+    res.status(201).json({ user, setupLink });
+  }),
+);
+
+/**
+ * Mint a set-password or reset link for someone.
+ *
+ * The whole URL comes back exactly once, for the administrator to copy. Only
+ * its hash is stored, so there is no route that can show it again — losing it
+ * means minting another, which is a button, not a problem.
+ */
+usersRouter.post(
+  '/:id/setup-link',
+  validateParams(idParams),
+  validateBody(setupLinkSchema),
+  asyncHandler(async (req, res) => {
+    const actor = actorOf(req);
+    const { id } = params(req, idParams);
+    const { purpose } = body(req, setupLinkSchema);
+
+    const link = await createSetupLink(id, purpose, actor, {
+      ip: clientIp(req),
+      userAgent: req.get('user-agent')?.slice(0, 300) ?? null,
+      requestId: req.requestId,
+    });
+
+    res.status(201).json(link);
   }),
 );
 

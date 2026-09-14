@@ -1,9 +1,10 @@
 import ipp from 'ipp';
 import {
   AppError,
-  BLOCKING_STATE_REASONS,
   ippUriHost,
+  isBlockingReason,
   isPrivateIpv4,
+  stripReasonSuffix,
   type ColorMode,
   type MediaSize,
   type PrinterCapabilities,
@@ -201,14 +202,26 @@ async function execute(
     );
   }
 
-  const status = parsed.statusCode;
+    const status = parsed.statusCode;
   if (status && !status.startsWith('successful')) {
-    throw new IppError(classify(null, status), `IPP ${operation} returned ${status}`, status);
+    const unsupported = parsed['unsupported-attributes-tag'];
+const unsupportedEntries = unsupported ? Object.entries(unsupported) : [];
+const detail =
+  unsupportedEntries.length > 0
+    ? ` (unsupported: ${unsupportedEntries
+        .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
+        .join(', ')})`
+    : '';
+    log.warn(
+      { operation, status, unsupportedAttributes: unsupported ?? null },
+      'IPP request rejected by device',
+    );
+
+    throw new IppError(classify(null, status), `IPP ${operation} returned ${status}${detail}`, status);
   }
 
   return parsed;
 }
-
 /**
  * The SSRF control, re-applied at the socket.
  *
@@ -275,6 +288,7 @@ export async function probeIpp(
           'copies-supported',
           'media-supported',
           'color-supported',
+          'orientation-requested-supported',
         ],
       },
     },
@@ -301,6 +315,10 @@ export async function probeIpp(
     )
     .filter((value): value is ColorMode => value !== null);
 
+    const orientations = asArray(attrs['orientation-requested-supported'])
+    .map((value) => Number(value))
+    .filter((value) => Number.isInteger(value));
+
   const copiesSupported = attrs['copies-supported'];
   const maxCopies =
     typeof copiesSupported === 'number'
@@ -311,18 +329,18 @@ export async function probeIpp(
 
   const makeAndModel = attrs['printer-make-and-model'];
 
-  return {
+   return {
     ipp: {
       supported: true,
       versions: asArray(attrs['ipp-versions-supported']),
       uri,
     },
     formats: asArray(attrs['document-format-supported']),
-    // Every IPP device supports one-sided even when it does not advertise it.
     sides: sidesSupported.length > 0 ? sidesSupported : ['one-sided'],
     colorModes: colorModes.length > 0 ? [...new Set(colorModes)] : ['grayscale'],
     maxCopies,
     media: asArray(attrs['media-supported']).slice(0, 40),
+    orientations,
     probedVia: 'ipp',
     counters: { life: false, print: false, copy: false },
     makeAndModel: typeof makeAndModel === 'string' ? makeAndModel : null,
@@ -339,9 +357,22 @@ export interface IppState {
 /**
  * Live device state — the thing RAW cannot report at all.
  *
- * IPP appends `-warning`, `-error` or `-report` to reasons; the suffix is
- * stripped so `toner-low-warning` and a bare `toner-low` map to the same
- * condition rather than appearing as two.
+ * IPP appends `-warning`, `-error` or `-report` to each reason, and that suffix
+ * is kept. It used to be stripped here, on the reasoning that `toner-low-warning`
+ * and a bare `toner-low` are the same condition. They are — but the suffix is
+ * not a spelling of the condition, it is the device's own verdict on whether
+ * the condition stops printing, and it is the only place that verdict exists.
+ *
+ * A WorkCentre 7835 with paper in tray 1 and empty trays 2–5 answers
+ * `printer-state: idle` alongside three `media-empty-warning` entries, one per
+ * empty tray. Stripped, those became `media-empty`, which is in
+ * `BLOCKING_STATE_REASONS`, so the device was marked offline, raised a critical
+ * alert, opened its circuit breaker and refused every job with "the paper tray
+ * is empty" — while standing idle with paper in it.
+ *
+ * Duplicates are collapsed because the count is per-subunit and the fleet board
+ * shows a condition, not a tally: nine reasons from a 7835 are four distinct
+ * ones. `plain.ts` strips the suffix for display; `isBlockingReason` reads it.
  */
 export async function readIppState(uri: string, timeoutMs = 5000): Promise<IppState> {
   const response = await execute(
@@ -360,19 +391,28 @@ export async function readIppState(uri: string, timeoutMs = 5000): Promise<IppSt
 
   const attrs = response['printer-attributes-tag'] ?? {};
   const raw = attrs['printer-state-reasons'];
-  const reasons = (Array.isArray(raw) ? raw : raw === undefined ? [] : [raw])
-    .map(String)
-    .map((reason) => reason.replace(/-(?:warning|error|report)$/, ''))
-    .filter((reason) => reason !== 'none');
+  const reasons = [
+    ...new Set(
+      (Array.isArray(raw) ? raw : raw === undefined ? [] : [raw])
+        .map(String)
+        .filter((reason) => stripReasonSuffix(reason) !== 'none'),
+    ),
+  ];
 
   const printerState = attrs['printer-state'];
-  const blocked = reasons.some((reason) => BLOCKING_STATE_REASONS.has(reason));
+  const blocked = reasons.some(isBlockingReason);
 
   // `printer-state` 3 = idle, 4 = processing, 5 = stopped.
   const stopped = printerState === 5 || printerState === 'stopped';
 
+  /* `stopped` is authoritative, `blocked` is corroborating.
+   *
+   * A device that says it is stopped is stopped whatever its reasons say. The
+   * converse does not hold: an `-error` reason on a printer reporting `idle`
+   * is a subunit fault the engine is working around, so it degrades rather
+   * than going offline, and the dispatch gate still holds jobs on it. */
   return {
-    status: blocked || stopped ? 'offline' : reasons.length > 0 ? 'degraded' : 'online',
+    status: stopped || blocked ? 'offline' : reasons.length > 0 ? 'degraded' : 'online',
     stateReasons: reasons,
   };
 }
@@ -390,7 +430,6 @@ export interface IppSendOptions {
   colorMode: ColorMode;
   media: MediaSize;
   orientation: 'portrait' | 'landscape';
-  pageRanges: ReadonlyArray<readonly [number, number]>;
   timeoutMs?: number;
 }
 
@@ -416,11 +455,17 @@ export async function sendIpp(options: IppSendOptions): Promise<IppSendResult> {
     'orientation-requested': options.orientation === 'landscape' ? 4 : 3,
   };
 
-  if (options.pageRanges.length > 0) {
-    // `page-ranges` is a rangeOfInteger, which the library encodes from a flat
-    // [lower, upper, lower, upper, …] array.
-    jobAttributes['page-ranges'] = options.pageRanges.flatMap(([from, to]) => [from, to]);
-  }
+  // `page-ranges` is deliberately NOT sent here. `prepare.ts#selectPages` has
+  // already cut `options.document` down to exactly the wanted pages before it
+  // reaches this function, so `options.pageRanges` describes page numbers in
+  // the *original* upload, not this (already-trimmed) buffer. Re-applying it
+  // as an IPP attribute asks the device to select page 3 out of a document
+  // that is now one page long — which a device either rejects outright
+  // (`client-error-attributes-or-values-not-supported`) or silently
+  // misinterprets. The impression count also has to come from what we
+  // physically sent, not from a range the device applied itself (see the
+  // comment on `selectPages`), which is the same reason it must not be
+  // re-declared here.
 
   const response = await execute(
     options.uri,
@@ -516,3 +561,4 @@ export function toAppError(error: unknown, printerId: number): AppError {
     cause: error,
   });
 }
+

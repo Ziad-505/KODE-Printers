@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>KODE Printer — maskable</title>
+  <!--
+    The maskable variant, and it is a different drawing rather than the same
+    one exported twice.
+
+    Android does not use the icon as drawn: it crops it to whatever shape the
+    launcher has chosen — circle, squircle, teardrop, rounded square — and the
+    spec only guarantees that a **circle of 80% diameter** survives. Everything
+    outside that is disposable.
+
+    Two consequences, and the previous maskable icon honoured neither:
+
+      · **No corner radius.** The ground is a full-bleed square. Rounding it
+        here means the launcher's own mask cuts a second, smaller curve out of
+        the first, and the result is the pale crescent of page colour in the
+        corners that makes an icon look like a mistake.
+
+      · **The mark is much smaller.** Scaled to sit inside the 409.6px safe
+        circle with room to spare, where the "any" icon fills 62% of its tile.
+        An icon that looks correct at both sizes is one file doing neither job.
+
+    So this reads as a smaller mark on more blue, which is right: it is drawn
+    to be cropped.
+  -->
+  <defs>
+    <linearGradient id="ground" x1="0" y1="0" x2="0.55" y2="1">
+      <stop offset="0" stop-color="#2f63bd" />
+      <stop offset="0.55" stop-color="#2150a0" />
+      <stop offset="1" stop-color="#173770" />
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#ground)" />
+
+  <!-- 90.3 × 102 at 2.4× = 216.7 × 244.8; its diagonal is 327px, comfortably
+       inside the 409.6px circle the launcher promises to keep. -->
+  <g transform="translate(147.6, 130.6) scale(2.4)">
+    <path
+      fill="#ffffff"
+      fill-rule="evenodd"
+      d="M0 0 L25.93 0 L27.92.57 L30.48 1.99 L33.33 5.13 L34.47 7.41 L35.04 11.97 L43.3 2.85 L46.72.85 L49.86 0 L85.75 0 L85.75 5.7 L54.13 44.44 L51.28 46.72 L46.44 48.43 L11.11 48.43 L7.98 47.58 L4.56 45.58 L1.71 42.17 L.28 38.75 L0 .28Z M8.83 8.26 L25.36 8.26 L26.78 9.4 L27.07 29.91 L28.77 31.91 L30.2 31.62 L31.62 30.2 L49.29 9.12 L51.28 8.26 L73.5 8.26 L49.57 37.61 L47.58 39.6 L46.15 40.17 L12.25 40.17 L10.83 39.6 L8.83 37.04 L8.83 8.55Z M10.26 53.56 L47.29 53.56 L51.57 55.27 L54.99 58.4 L90.31 101.99 L49.29 101.71 L44.44 99.72 L42.17 98.01 L35.33 89.74 L34.76 90.03 L34.76 93.45 L33.62 96.3 L31.05 99.43 L28.21 101.14 L23.93 101.99 L.28 101.99 L.28 62.96 L1.71 59.54 L3.7 56.98 L7.41 54.42 L9.97 53.85Z M12.82 61.54 L45.58 61.54 L47.86 62.39 L73.22 93.45 L50.71 93.45 L49 92.59 L29.91 70.09 L27.92 70.37 L27.07 71.79 L26.78 92.31 L25.64 93.45 L8.83 93.45 L8.83 64.96 L10.54 62.39 L12.54 61.82Z M3.42 3.42 L25.64 3.42 L28.21 4.56 L30.48 6.84 L31.62 9.97 L31.91 21.65 L43.02 7.98 L45.58 5.41 L48.15 3.99 L50.14 3.42 L83.19 3.42 L51.85 41.88 L49.86 43.59 L46.15 45.01 L11.4 45.01 L6.84 43.02 L4.27 39.89 L3.42 37.32 L3.42 3.7Z M10.54 56.98 L47.01 56.98 L49.29 57.83 L52.71 60.97 L83.19 98.58 L51.28 98.58 L47.86 97.72 L43.59 94.59 L31.91 80.34 L31.62 91.74 L30.48 94.87 L27.92 97.44 L24.5 98.58 L3.42 98.58 L3.42 64.67 L5.7 59.83 L8.26 57.83 L10.26 57.26Z"
+    />
+  </g>
+</svg>

@@ -38,28 +38,59 @@
 
 /* ─────────────────────────────────────────────────────────────────── nav ── */
 
+/**
+ * A labelled sidebar rather than an icon rail.
+ *
+ * The rail was 76px of icons with a hover tooltip, which is fine on a desktop
+ * with a mouse and useless everywhere else: a tooltip does not exist on a
+ * touchscreen, and a printer icon and a scanner icon are not distinguishable
+ * at 20px to someone who uses this twice a week. The labels are the fix, and
+ * 240px is cheap on the screens this is used on.
+ */
 .rail {
   position: sticky;
   top: 0;
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-4) var(--space-2);
+  align-items: stretch;
+  gap: 2px;
+  padding: var(--space-5) var(--space-3) var(--space-4);
   background: var(--surface-1);
-  border-right: 1px solid var(--border-subtle);
-  box-shadow: var(--inner-highlight);
+  border-right: 1px solid var(--border-default);
   z-index: 20;
 }
 
+/**
+ * The rail is *hidden* below 900px, not merely un-columned.
+ *
+ * Collapsing `.shell` to a single column does not remove the sidebar — it moves
+ * it into its own grid row, where `height: 100dvh` turns it into a full screen
+ * of navigation stacked on top of the page. Every phone opened this app to a
+ * screenful of nav and had to scroll an entire viewport to reach any content.
+ *
+ * This rule sits after `.rail` deliberately. A media query carries no extra
+ * specificity, so an override written earlier in the file loses to the base
+ * rule and silently does nothing.
+ */
+@media (width < 900px) {
+  .rail {
+    display: none;
+  }
+}
+
 .rail__brand {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  margin-bottom: var(--space-4);
-  color: var(--kode-blue-bright);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 40px;
+  padding: 0 var(--space-2);
+  margin-bottom: var(--space-5);
+  color: var(--kode-blue);
+  font-family: var(--font-brand);
+  font-size: var(--text-xs);
+  font-weight: 800;
+  letter-spacing: 0.04em;
 }
 
 .rail__spacer {
@@ -68,25 +99,31 @@
 
 .nav-item {
   position: relative;
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 44px;
+  padding: 0 var(--space-3);
   border-radius: var(--radius-md);
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+  font-weight: 500;
   transition:
     color var(--duration-fast) var(--ease-out),
     background var(--duration-fast) var(--ease-out);
 }
 
 .nav-item:hover {
-  color: var(--text-secondary);
+  color: var(--text-primary);
   background: var(--surface-3);
 }
 
 .nav-item[aria-current='page'] {
-  color: var(--text-primary);
-  background: var(--surface-3);
+  /* A blue wash rather than a grey one. This is the only navigation state that
+     uses the brand colour, which is what makes it read as "you are here". */
+  color: var(--kode-blue);
+  background: color-mix(in srgb, var(--kode-blue) 8%, transparent);
+  font-weight: 600;
 }
 
 /**
@@ -96,56 +133,34 @@
 .nav-item[aria-current='page']::before {
   content: '';
   position: absolute;
-  left: -10px;
+  left: 0;
   top: 50%;
   translate: 0 -50%;
   width: 3px;
-  height: 22px;
-  border-radius: var(--radius-pill);
-  background: linear-gradient(to bottom, var(--kode-gold), var(--kode-blue-bright));
-  transform: skewY(var(--kode-skew));
+  height: 20px;
+  border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+  background: var(--kode-blue);
 }
 
 .nav-item__badge {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  min-width: 17px;
-  height: 17px;
-  padding: 0 4px;
+  margin-left: auto;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
   display: grid;
   place-items: center;
-  font-size: 10px;
-  font-weight: 800;
+  font-size: var(--text-2xs);
+  font-weight: 700;
   border-radius: var(--radius-pill);
-  background: var(--accent-crimson);
-  color: #fff;
-  box-shadow: 0 0 0 2px var(--surface-1);
+  background: color-mix(in srgb, var(--accent-crimson) 12%, transparent);
+  color: var(--accent-crimson);
 }
 
-/* Tooltip on the collapsed rail — the icons alone are not self-describing. */
+/* The label is the navigation now, not a tooltip that appears on hover. */
 .nav-item__label {
-  position: absolute;
-  left: calc(100% + 12px);
-  padding: 6px 10px;
   white-space: nowrap;
-  font-size: var(--text-xs);
-  font-weight: 600;
-  background: var(--surface-4);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-md);
-  opacity: 0;
-  translate: -6px 0;
-  pointer-events: none;
-  transition: all var(--duration-fast) var(--ease-out);
-  z-index: 30;
-}
-
-.nav-item:hover .nav-item__label,
-.nav-item:focus-visible .nav-item__label {
-  opacity: 1;
-  translate: 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .bottom-nav {
@@ -158,9 +173,23 @@
   grid-auto-columns: 1fr;
   height: calc(var(--bottom-nav) + env(safe-area-inset-bottom));
   padding-bottom: env(safe-area-inset-bottom);
-  background: color-mix(in srgb, var(--surface-1) 92%, transparent);
-  backdrop-filter: blur(16px) saturate(180%);
-  border-top: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--surface-1) 94%, transparent);
+  backdrop-filter: blur(16px) saturate(140%);
+  border-top: 1px solid var(--border-default);
+}
+
+/**
+ * And hidden again above it, for the mirror-image reason.
+ *
+ * `.bottom-nav` is `position: fixed`, so nothing about the desktop grid moves
+ * it out of the way: at 1280px it sat across the bottom of every page as a
+ * second, redundant copy of the sidebar, covering whatever content was under
+ * it. The two navigations are alternatives, never both.
+ */
+@media (width >= 900px) {
+  .bottom-nav {
+    display: none;
+  }
 }
 
 .bottom-nav__item {
@@ -178,17 +207,43 @@
 }
 
 .bottom-nav__item[aria-current='page'] {
-  color: var(--kode-blue-bright);
+  color: var(--kode-blue);
+  font-weight: 600;
+}
+
+/**
+ * The unread count on the bottom bar.
+ *
+ * Its own class rather than the sidebar's `.nav-item__badge`. That one is a
+ * trailing pill pushed out by `margin-left: auto`, which in a stacked
+ * icon-over-label tab flowed inline and rendered as "2Alerts".
+ */
+.bottom-nav__badge {
+  position: absolute;
+  top: -5px;
+  right: -9px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  border-radius: var(--radius-pill);
+  background: var(--accent-crimson);
+  color: #fff;
+  box-shadow: 0 0 0 2px var(--surface-1);
 }
 
 .bottom-nav__item[aria-current='page']::before {
   content: '';
   position: absolute;
   top: 0;
-  width: 26px;
-  height: 3px;
+  width: 24px;
+  height: 2px;
   border-radius: 0 0 var(--radius-pill) var(--radius-pill);
-  background: linear-gradient(to right, var(--kode-gold), var(--kode-blue-bright));
+  background: var(--kode-blue);
 }
 
 /* ═══════════════════════════════════════════════════════════════ surfaces */
@@ -196,9 +251,9 @@
 .card {
   position: relative;
   background: var(--surface-1);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
-  box-shadow: var(--inner-highlight), var(--shadow-sm);
+  box-shadow: var(--shadow-sm), var(--shadow-md);
   overflow: hidden;
 }
 
@@ -209,10 +264,18 @@
     box-shadow var(--duration-base) var(--ease-out);
 }
 
-.card--interactive:hover {
-  transform: translateY(-2px);
-  border-color: var(--border-default);
-  box-shadow: var(--inner-highlight), var(--shadow-md);
+/* Hover is a pointer idiom. On a touchscreen it "sticks" after a tap and
+   leaves a card lifted for no reason, so it is gated. */
+@media (hover: hover) {
+  .card--interactive:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-default);
+    box-shadow: var(--inner-highlight), var(--shadow-lg);
+  }
+}
+
+.card--interactive:active {
+  transform: scale(0.995);
 }
 
 .card__body {
@@ -305,7 +368,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  height: 40px;
+  height: 44px;
   padding: 0 var(--space-4);
   font-size: var(--text-sm);
   font-weight: 700;
@@ -322,7 +385,11 @@
 
 /* A tactile press. 1px is enough to register as a button and not as a jolt. */
 .btn:active:not(:disabled) {
-  transform: translateY(1px);
+  /* Scale, not a 1px nudge. Under a thumb the nudge is invisible — the finger
+     covers the button — while a scale changes the silhouette at the edges,
+     which is the part still visible. This is the only feedback that a tap
+     landed before the network answers, and without it people tap twice. */
+  transform: scale(0.97);
 }
 
 .btn:disabled {
@@ -367,9 +434,10 @@
  * "this one".
  */
 .btn--accent {
-  background: var(--kode-gold);
-  color: #241a00;
-  font-weight: 800;
+  background: var(--kode-blue);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: var(--shadow-glow);
 }
 
 .btn--accent:hover:not(:disabled) {
@@ -387,19 +455,32 @@
 }
 
 .btn--lg {
-  height: 48px;
+  height: 52px;
   padding: 0 var(--space-5);
   font-size: var(--text-base);
 }
 
+/**
+ * "Small" is about visual weight, not about being harder to hit.
+ *
+ * This was 36px, which is under the 44px floor every touch guideline agrees
+ * on — and it was the variant used for the two controls people tap while
+ * standing at a printer. The padding and type still shrink; the target does
+ * not. The extra height is claimed as transparent padding so the button looks
+ * the size it did before.
+ */
 .btn--sm {
-  height: 32px;
+  height: 44px;
   padding: 0 var(--space-3);
   font-size: var(--text-xs);
 }
 
+.btn--sm.btn--icon {
+  width: 44px;
+}
+
 .btn--icon {
-  width: 40px;
+  width: 44px;
   padding: 0;
 }
 
@@ -462,15 +543,18 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  height: 24px;
+  height: 26px;
   padding: 0 var(--space-3);
-  font-size: var(--text-2xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0;
+  /* Sentence case, not micro-caps.
+     "Did not print" and "Out of paper" are sentences a person reads; the same
+     words in tracked capitals read as a system code and made every screen
+     shout. The colour and the pill already carry the emphasis. */
   border-radius: var(--radius-pill);
   background: var(--surface-3);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-default);
   color: var(--text-secondary);
   white-space: nowrap;
 }
@@ -514,10 +598,9 @@
 }
 
 .field__label {
-  font-size: var(--text-xs);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0;
   color: var(--text-secondary);
 }
 
@@ -532,20 +615,43 @@
   color: var(--status-offline);
 }
 
+/**
+ * Fields.
+ *
+ * `--text-input` is 16px and is not negotiable: mobile Safari zooms the page
+ * on focus below that and never zooms back, so sign-in, search and the whole
+ * print composer left an iPhone scrolled sideways for the rest of the session.
+ * It was the most-reported "this feels like a website" symptom and it was one
+ * declaration.
+ *
+ * 44px min-height rather than 42, so a field is the same touch target as the
+ * button next to it.
+ */
 .input,
 .select,
 .textarea {
   width: 100%;
-  min-height: 42px;
+  min-height: 44px;
   padding: var(--space-3) var(--space-4);
-  font-size: var(--text-base);
+  font-size: var(--text-input);
   color: var(--text-primary);
   background: var(--surface-inset);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   transition:
     border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
     background var(--duration-fast) var(--ease-out);
+}
+
+/* A ring rather than a colour swap: the field keeps its shape and the focus
+   reads at a glance instead of asking you to compare two greys. */
+.input:focus-visible,
+.select:focus-visible,
+.textarea:focus-visible {
+  outline: none;
+  border-color: var(--kode-blue);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--kode-blue) 18%, transparent);
 }
 
 .input::placeholder,
@@ -635,12 +741,28 @@
   cursor: not-allowed;
 }
 
+/**
+ * The switch, and the thing that was wrong with it.
+ *
+ * The track is 22px tall and the label sat on the same line, so the whole
+ * control was a 26px target — the native input is `kode-visually-hidden`, which
+ * shrinks it to 1×1px, meaning the *label* is the only thing anyone can hit.
+ * Under a thumb that is a miss as often as a hit, and the one on the sign-in
+ * screen ("Keep me signed in") is the first control a new user ever touches.
+ *
+ * The min-height gives it a 44px target without moving a single pixel of the
+ * visible switch: the extra is transparent padding around the same artwork.
+ */
 .switch {
   position: relative;
   display: inline-flex;
   align-items: center;
   gap: var(--space-3);
+  min-height: 44px;
   cursor: pointer;
+  /* The thumb is positioned against this box, so it has to stop being
+     top-anchored once the box is taller than the track. */
+  padding: var(--space-2) 0;
 }
 
 .switch__track {
@@ -655,7 +777,10 @@
 
 .switch__thumb {
   position: absolute;
-  top: 3px;
+  /* Centred rather than measured from the top: the label box is now 44px and
+     a fixed 3px offset would leave the thumb floating above its track. */
+  top: 50%;
+  translate: 0 -50%;
   left: 3px;
   width: 16px;
   height: 16px;
@@ -672,7 +797,7 @@
 }
 
 .switch input:checked ~ .switch__thumb {
-  translate: 18px 0;
+  translate: 18px -50%;
   background: #fff;
 }
 
@@ -709,6 +834,10 @@
 
 .table-wrap {
   overflow-x: auto;
+  /* Without this, swiping a wide table sideways on a phone hands the gesture
+     to the browser at the end of the scroll and navigates back — losing the
+     page the person was reading. `contain` keeps the gesture in the table. */
+  overscroll-behavior-x: contain;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-subtle);
 }
@@ -727,7 +856,7 @@
   text-align: left;
   font-size: var(--text-2xs);
   font-weight: 700;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--text-tertiary);
   background: var(--surface-2);
@@ -775,11 +904,10 @@
 }
 
 .stat__label {
-  font-size: var(--text-2xs);
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-tertiary);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--text-secondary);
 }
 
 .stat__value {
@@ -1073,4 +1201,323 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
+}
+
+/* ═══════════════════════════════════════════════════ auth (sign in, set-up) */
+
+/**
+ * The signed-out screens.
+ *
+ * One composition serves sign-in and set-password, because they are the same
+ * moment from two directions and a person who has just been given a link should
+ * recognise where they have landed.
+ *
+ * The mark floats above the card and two more sit far back in the ground,
+ * drifting on a much slower cycle. It is the one piece of motion in the whole
+ * interface, it is slow enough to read as breathing rather than animation, and
+ * it stops entirely for anyone who has asked their system to reduce motion.
+ */
+.auth {
+  position: relative;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-7) var(--space-4);
+  overflow: hidden;
+  background: var(--surface-base);
+}
+
+.auth__ground {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    1100px 620px at 50% 24%,
+    color-mix(in srgb, var(--surface-1) 75%, transparent) 0%,
+    transparent 62%
+  );
+  pointer-events: none;
+}
+
+.auth__drift {
+  position: absolute;
+  color: var(--kode-blue);
+  opacity: 0.05;
+  pointer-events: none;
+  animation: kode-drift 20s ease-in-out infinite;
+}
+
+.auth__drift--a {
+  top: 7%;
+  left: 8%;
+}
+
+.auth__drift--b {
+  right: 8%;
+  bottom: 7%;
+  color: var(--kode-gold);
+  opacity: 0.05;
+  animation-duration: 27s;
+  animation-direction: reverse;
+}
+
+.auth__panel {
+  position: relative;
+  width: min(460px, 100%);
+}
+
+.auth__mark {
+  position: absolute;
+  top: -46px;
+  left: 50%;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 92px;
+  border-radius: 28px;
+  background: var(--surface-1);
+  color: var(--kode-blue);
+  box-shadow: var(--shadow-lg), var(--shadow-sm);
+  translate: -50% 0;
+  animation: kode-float 6s ease-in-out infinite;
+}
+
+.auth__card {
+  padding: calc(var(--space-8) + 10px) var(--space-6) var(--space-6);
+  background: var(--surface-1);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.auth__title {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
+.auth__lede {
+  margin-top: var(--space-2);
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  text-align: center;
+  text-wrap: pretty;
+}
+
+.auth__eyebrow {
+  font-family: var(--font-brand);
+  font-size: var(--text-2xs);
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+.auth__foot {
+  margin-top: var(--space-6);
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+@keyframes kode-float {
+  0%,
+  100% {
+    translate: -50% 0;
+  }
+  50% {
+    translate: -50% -9px;
+  }
+}
+
+@keyframes kode-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(-8deg);
+  }
+  50% {
+    transform: translate(14px, -22px) rotate(-4deg);
+  }
+}
+
+/* Motion is decoration here. Anyone who has asked for less gets none. */
+@media (prefers-reduced-motion: reduce) {
+  .auth__mark,
+  .auth__drift {
+    animation: none;
+  }
+}
+
+/* ═════════════════════════════════════════════════════════ the set-up link */
+
+/**
+ * The generated link, shown once.
+ *
+ * `word-break: break-all` because it is a long opaque token in a narrow card
+ * and the alternative is a horizontal scrollbar an administrator has to fight
+ * before they can even see what they are copying.
+ */
+.link-box {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border-default);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.link-box__label {
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-2);
+}
+
+.link-box__token {
+  color: var(--kode-blue);
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ home */
+
+/**
+ * Layout helpers for the home screen.
+ *
+ * `auto-fit` with a minimum rather than a media query: the same three cards
+ * become two and then one as the window narrows, and the sidebar drops under
+ * the main column at the width where 300px of it would start squeezing the
+ * chart rather than at an arbitrary breakpoint.
+ */
+.grid--3 {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.grid--sidebar {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+  align-items: start;
+}
+
+@media (width < 1100px) {
+  .grid--sidebar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/**
+ * The one thing that is wrong, said as a sentence.
+ *
+ * Warm brick rather than a signal red. It has to be noticed without reading as
+ * an emergency — a tray needs paper, nobody is hurt.
+ */
+.attention {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--status-offline) 9%, var(--surface-1));
+  border: 1px solid color-mix(in srgb, var(--status-offline) 24%, transparent);
+}
+
+.attention__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-1);
+  color: var(--status-offline);
+  font-size: var(--text-xl);
+  font-weight: 800;
+  line-height: 1;
+}
+
+@media (width < 620px) {
+  .attention {
+    flex-wrap: wrap;
+  }
+}
+
+.big-stat {
+  margin: var(--space-4) 0 var(--space-2);
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+/* A row in a list inside a card. The last one loses its rule so the card does
+   not appear to have a stray line above its bottom edge. */
+.list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.list-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.list-row:first-child {
+  padding-top: 0;
+}
+
+/* Toner. Rounded on both the track and the fill, so a nearly-empty cartridge
+   still reads as a shape rather than a sliver. */
+.meter {
+  height: 6px;
+  margin-top: var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.meter__fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  transition: width var(--duration-base) var(--ease-out);
+}
+
+/**
+ * The update offer.
+ *
+ * Bottom-centre and above the bottom bar on a phone, so it never covers the
+ * navigation someone is reaching for. It is an offer, not an alert — quiet
+ * surface, one action, no dismissal required.
+ */
+.update-bar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--bottom-nav) + env(safe-area-inset-bottom) + var(--space-4));
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
+  border-radius: var(--radius-pill);
+  background: var(--surface-1);
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--text-sm);
+  translate: -50% 0;
+}
+
+@media (width >= 900px) {
+  .update-bar {
+    bottom: var(--space-6);
+  }
 }

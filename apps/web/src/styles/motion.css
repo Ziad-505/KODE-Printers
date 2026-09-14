@@ -1,0 +1,350 @@
+/**
+ * Motion.
+ *
+ * One file, because motion that is invented per screen ends up inconsistent in
+ * a way people feel without being able to name: a card that springs on one page
+ * and fades on the next reads as two apps stitched together.
+ *
+ * The rules this follows, in order of how much they matter:
+ *
+ *   1. **Motion explains a change; it does not decorate a static thing.** Every
+ *      animation here is attached to something appearing, leaving, opening or
+ *      responding to a press. Nothing loops, nothing drifts, nothing pulses for
+ *      attention except the one thing that genuinely is live (a status dot on a
+ *      device that is actively working).
+ *
+ *   2. **Short.** 90–220ms for anything the user triggered. This app gets used
+ *      forty times a day by the same people; a 400ms flourish is a wait by the
+ *      tenth time and an irritation by the hundredth.
+ *
+ *   3. **Distance is small.** 6–10px of travel. Big slides look impressive once
+ *      and cheap thereafter, and on a phone they read as the page failing to
+ *      load.
+ *
+ *   4. **`prefers-reduced-motion` removes movement, never information.** The
+ *      block at the bottom disables travel and scale but keeps opacity, so an
+ *      element that animates in still *appears* — it just does not fly. Setting
+ *      `animation: none` on an entrance keyframe that starts at `opacity: 0`
+ *      would leave the content permanently invisible, which is the classic way
+ *      this preference gets implemented into an accessibility bug.
+ */
+
+/* ═══════════════════════════════════════════════════════════════ entrances */
+
+@keyframes kp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes kp-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes kp-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* A sheet coming up from the bottom edge — the phone idiom for a modal. */
+@keyframes kp-sheet-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.kp-rise {
+  animation: kp-rise var(--duration-base) var(--ease-out) both;
+}
+
+.kp-fade {
+  animation: kp-fade var(--duration-base) var(--ease-out) both;
+}
+
+.kp-scale-in {
+  animation: kp-scale-in var(--duration-base) var(--ease-spring) both;
+}
+
+/**
+ * A stagger, driven by a custom property the markup sets per item.
+ *
+ * `--kp-index` rather than a generated `:nth-child` list: a fleet has an
+ * unknown number of cards, and forty hand-written nth-child rules is how a
+ * stylesheet grows a tail nobody dares delete.
+ *
+ * Capped at 8 steps. Past that the last card in a long list waits half a second
+ * to appear, which stops reading as "arriving together" and starts reading as
+ * "loading slowly".
+ */
+.kp-stagger > * {
+  animation: kp-rise var(--duration-base) var(--ease-out) both;
+  animation-delay: calc(min(var(--kp-index, 0), 8) * 40ms);
+}
+
+/* ═════════════════════════════════════════════════════════════ page change */
+
+/**
+ * The route transition.
+ *
+ * Deliberately just a short rise-and-fade, not a slide. A directional slide
+ * implies a spatial relationship between screens — back is left, forward is
+ * right — and this app's navigation is a flat set of tabs where that
+ * relationship does not exist. Implying it would be a lie the user has to
+ * un-learn.
+ */
+.kp-route {
+  animation: kp-rise var(--duration-base) var(--ease-out) both;
+}
+
+/* ══════════════════════════════════════════════════════════════════ press */
+
+/**
+ * The press.
+ *
+ * `scale` on `:active` is the single highest-value animation in a touch
+ * interface: it is the only confirmation that a tap landed, and without it a
+ * slow network makes people tap twice. 0.97 is enough to feel and small enough
+ * not to jolt.
+ */
+.kp-press {
+  transition:
+    transform var(--duration-instant) var(--ease-out),
+    opacity var(--duration-instant) var(--ease-out);
+}
+
+.kp-press:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* A card that is a link. Lifts on hover with a pointer; presses on touch. */
+.kp-lift {
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .kp-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+.kp-lift:active {
+  transform: scale(0.995);
+}
+
+/* ═══════════════════════════════════════════════════════════════ liveness */
+
+/**
+ * The one thing allowed to loop, and only while it is true.
+ *
+ * A printer that is actively marking paper gets a slow breathing halo. It is
+ * the only ambient motion in the app, which is what makes it mean something —
+ * a screen where four things pulse is a screen where nothing does.
+ */
+@keyframes kp-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--status-online) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--status-online) 0%, transparent);
+  }
+}
+
+.kp-live {
+  animation: kp-breathe 2.4s var(--ease-in-out) infinite;
+}
+
+/* A determinate bar filling to its value, rather than snapping. */
+.kp-fill {
+  transition: width var(--duration-slow) var(--ease-out);
+}
+
+/* Skeletons. A sweep, not a blink — a blink reads as a fault. */
+@keyframes kp-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.kp-skeleton {
+  background: linear-gradient(90deg, var(--surface-2), var(--surface-3), var(--surface-2));
+  background-size: 200% 100%;
+  animation: kp-shimmer 1.4s linear infinite;
+  border-radius: var(--radius-md);
+}
+
+/* A number that changed since the last poll, acknowledged once. */
+@keyframes kp-flash {
+  from {
+    background: color-mix(in srgb, var(--kode-blue) 16%, transparent);
+  }
+  to {
+    background: transparent;
+  }
+}
+
+.kp-changed {
+  animation: kp-flash var(--duration-slow) var(--ease-out);
+  border-radius: var(--radius-sm);
+}
+
+/* ═════════════════════════════════════════════════════ reduced motion ═══ */
+
+/**
+ * Travel and scale go; opacity stays.
+ *
+ * The naive implementation is `animation: none !important`, and on this
+ * stylesheet it would hide every staggered card permanently, because those
+ * keyframes begin at `opacity: 0` and `both` holds the start frame. Rewriting
+ * the animations to opacity-only is the version that respects the preference
+ * without removing the content.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .kp-rise,
+  .kp-scale-in,
+  .kp-route,
+  .kp-stagger > * {
+    animation: kp-fade var(--duration-fast) linear both;
+    animation-delay: 0ms;
+  }
+
+  .kp-press:active:not(:disabled),
+  .kp-lift:hover,
+  .kp-lift:active {
+    transform: none;
+  }
+
+  .kp-live {
+    animation: none;
+  }
+
+  .kp-skeleton {
+    animation: none;
+  }
+
+  .kp-fill {
+    transition: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════ enter and exit */
+
+/**
+ * Exit animations, which CSS cannot do alone.
+ *
+ * A removed element unmounts immediately, so there is nothing left to animate.
+ * `usePresence` keeps it mounted for the length of the leave animation and
+ * flips a data attribute; these rules are the two halves of that.
+ *
+ * This is the whole reason framer-motion was here — 115 kB, 38 kB gzipped, to
+ * fade six lists in and two things out. On the low-end Android handsets this
+ * app is built for, that is a third of a second of parse before anything moves.
+ */
+@keyframes kp-overlay-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes kp-modal-out {
+  to {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+}
+
+@keyframes kp-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.overlay[data-state='open'] {
+  animation: kp-fade var(--duration-fast) var(--ease-out) both;
+}
+
+.overlay[data-state='closing'] {
+  animation: kp-overlay-out var(--duration-fast) var(--ease-out) both;
+}
+
+.modal[data-state='open'] {
+  animation: kp-modal-in var(--duration-base) var(--ease-spring) both;
+}
+
+.modal[data-state='closing'] {
+  animation: kp-modal-out var(--duration-fast) var(--ease-in-out) both;
+}
+
+/**
+ * Toasts come in from the trailing edge, because that is where they live.
+ * On a phone the stack is bottom-anchored, so the same rule reads as rising —
+ * `translate` is written against the inline axis and the layout supplies the
+ * direction.
+ */
+@keyframes kp-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(32px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes kp-toast-out {
+  to {
+    opacity: 0;
+    transform: translateX(32px) scale(0.96);
+  }
+}
+
+.toast[data-state='open'] {
+  animation: kp-toast-in var(--duration-base) var(--ease-spring) both;
+}
+
+.toast[data-state='closing'] {
+  animation: kp-toast-out var(--duration-fast) var(--ease-in-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal[data-state='open'],
+  .toast[data-state='open'] {
+    animation: kp-fade var(--duration-fast) linear both;
+  }
+
+  .modal[data-state='closing'],
+  .toast[data-state='closing'],
+  .overlay[data-state='closing'] {
+    animation: kp-overlay-out var(--duration-fast) linear both;
+  }
+}

@@ -2,7 +2,7 @@ import type { Db } from '../../db/pool.js';
 import { printersModel, type PrinterWithSecrets } from '../../models/printers.js';
 import { notificationsModel } from '../../models/notifications.js';
 import { subsystem } from '../../utilities/logger.js';
-import { asString, snmpGet } from './client.js';
+import { asInteger, asString, snmpGet } from './client.js';
 import { HOST_RESOURCES, PRINTER_MIB, SYSTEM, VENDOR_COUNTERS, vendorKeyFrom } from './oids.js';
 
 const log = subsystem('snmp:identity');
@@ -143,23 +143,60 @@ export async function reconcileIdentity(
  */
 export function suggestVendorCounters(
   description: string | null,
-): { print: string; copy: string; label: string } | null {
+): { print: string | null; copy: string | null; label: string } | null {
   if (!description) return null;
   const key = vendorKeyFrom(description);
-  return key ? (VENDOR_COUNTERS[key] ?? null) : null;
+  const entry = key ? (VENDOR_COUNTERS[key] ?? null) : null;
+  // A recognised vendor with no known pair is still worth returning: the label
+  // tells the inventory pass which family it is looking at, and a null pair
+  // says "ask the admin" rather than "this is not a Xerox".
+  return entry;
 }
 
-/** Verifies suggested vendor counters actually answer before they are stored. */
+/**
+ * Verifies suggested vendor counters actually answer *and mean what we think*
+ * before they are stored.
+ *
+ * Answering is not enough, and assuming it was is how the Xerox default
+ * survived: `…13.2.1.6.1.20.1` replies instantly on a WorkCentre, with the same
+ * number `prtMarkerLifeCount` returns, because it is the total-impressions
+ * counter rather than a print-only one. Stored as `snmp_print_oid`, it made
+ * every photocopy in the club arrive in the reports as somebody's print job.
+ *
+ * A print counter that tracks the life counter exactly is therefore rejected.
+ * `unknown` activity is a limitation the reports already state; misattributed
+ * activity is a number someone will act on.
+ */
 export async function verifyVendorCounters(
   printer: PrinterWithSecrets,
-  candidate: { print: string; copy: string },
+  candidate: { print: string | null; copy: string | null },
 ): Promise<{ print: string | null; copy: string | null }> {
+  if (!candidate.print && !candidate.copy) return { print: null, copy: null };
+
+  const wanted: string[] = [PRINTER_MIB.markerLifeCount];
+  if (candidate.print) wanted.push(candidate.print);
+  if (candidate.copy) wanted.push(candidate.copy);
+
   try {
-    const values = await snmpGet(printer, [candidate.print, candidate.copy]);
-    return {
-      print: values.get(candidate.print) === null ? null : candidate.print,
-      copy: values.get(candidate.copy) === null ? null : candidate.copy,
+    const values = await snmpGet(printer, wanted);
+    const life = asInteger(values.get(PRINTER_MIB.markerLifeCount) ?? null);
+
+    const accept = (oid: string | null): string | null => {
+      if (!oid) return null;
+      const value = values.get(oid);
+      if (value === null || value === undefined) return null;
+      // Equal to the lifetime total means it *is* the lifetime total.
+      if (life !== null && asInteger(value) === life) {
+        log.warn(
+          { printerId: printer.id, oid, value: life },
+          'vendor counter matches prtMarkerLifeCount exactly; it is a total, not a per-type counter',
+        );
+        return null;
+      }
+      return oid;
     };
+
+    return { print: accept(candidate.print), copy: accept(candidate.copy) };
   } catch {
     return { print: null, copy: null };
   }

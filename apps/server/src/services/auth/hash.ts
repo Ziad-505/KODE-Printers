@@ -140,3 +140,16 @@ export function isObviousPassword(password: string): boolean {
  * script cannot disagree about what "still the default password" means.
  */
 export const SEEDED_DEFAULT_PASSWORD = 'KodePrinter!Setup2026';
+
+/**
+ * Set-password links. Random, opaque, stored hashed — same reasoning as a
+ * refresh token: 256 bits from a CSPRNG has no dictionary to attack, so a slow
+ * hash would buy latency and nothing else.
+ *
+ * base64url because the value goes in a URL path and is pasted by hand into a
+ * chat window; `+`, `/` and `=` all survive that badly.
+ */
+export function generateSetupToken(): { token: string; hash: string } {
+  const token = randomBytes(32).toString('base64url');
+  return { token, hash: hashToken(token) };
+}

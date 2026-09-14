@@ -87,6 +87,13 @@ export const STATE_REASON_SEVERITY: Readonly<Record<string, Severity>> = {
   'media-low': 'warning',
   'developer-low': 'warning',
   'opc-life-over': 'warning',
+  'input-tray-empty': 'warning',
+  'output-tray-missing': 'warning',
+  'output-area-almost-full': 'warning',
+  'overdue-prevent-maint': 'warning',
+  'subunit-recoverable-failure': 'warning',
+  'subunit-unrecoverable-failure': 'warning',
+  'marker-supply-missing': 'critical',
   'toner-empty': 'critical',
   'marker-supply-empty': 'critical',
   'media-empty': 'critical',
@@ -101,6 +108,64 @@ export const STATE_REASON_SEVERITY: Readonly<Record<string, Severity>> = {
   paused: 'critical',
   'service-request': 'critical',
 } as const;
+
+/* ------------------------------------------------- state-reason severities */
+
+/**
+ * The `-report` / `-warning` / `-error` suffix RFC 8011 §5.4.12 appends to every
+ * `printer-state-reasons` keyword.
+ *
+ * The suffix *is* the severity, and dropping it is not a normalisation — it is
+ * the loss of the only field that says whether the condition stops printing.
+ *
+ * A Xerox WorkCentre 7835 with paper in tray 1 and empty trays 2–5 reports
+ * `media-empty-warning` three times while `printer-state` stays `idle`: a
+ * per-tray notice from a device that is ready to print. Strip the suffix and it
+ * becomes `media-empty`, which the dispatch gate refuses on — so every job to a
+ * working printer was held, retried and held again, and the fleet board showed
+ * a critical "not reachable" alert for a device sitting idle.
+ *
+ * So the suffix is carried through storage and stripped only for display.
+ */
+export const REASON_SUFFIX_PATTERN = /-(?:report|warning|error)$/;
+
+export type ReasonSeverity = 'report' | 'warning' | 'error';
+
+/** The bare keyword, for display and for severity lookup. */
+export function stripReasonSuffix(reason: string): string {
+  return reason.replace(REASON_SUFFIX_PATTERN, '');
+}
+
+/**
+ * The severity the device declared, or null where it declared none.
+ *
+ * Null is not "fine". SNMP's `hrPrinterDetectedErrorState` carries no severity
+ * at all, and `device-mismatch` is ours rather than the device's, so an absent
+ * suffix has to fall back to the keyword's own meaning — see `isBlockingReason`.
+ */
+export function reasonSeverity(reason: string): ReasonSeverity | null {
+  const match = REASON_SUFFIX_PATTERN.exec(reason);
+  return match === null ? null : (match[0].slice(1) as ReasonSeverity);
+}
+
+/**
+ * Whether a reason means "hold the job".
+ *
+ * The device's own severity wins where it gave one: a `-warning` or `-report`
+ * never blocks, however alarming the keyword reads. Only an `-error`, or a bare
+ * keyword from a source that cannot express severity, is checked against
+ * `BLOCKING_STATE_REASONS`.
+ */
+export function isBlockingReason(reason: string): boolean {
+  const severity = reasonSeverity(reason);
+  if (severity === 'warning' || severity === 'report') return false;
+  return BLOCKING_STATE_REASONS.has(stripReasonSuffix(reason));
+}
+
+/** The blocking subset of a device's reasons, suffixes intact. */
+export function blockingReasons(reasons: readonly string[]): string[] {
+  return reasons.filter(isBlockingReason);
+}
 
 /**
  * Reasons that mean "do not send anything to this device right now".
@@ -143,6 +208,10 @@ export const AUDIT_ACTIONS = [
   'user.update',
   'user.deactivate',
   'user.password_set',
+  /** An administrator minted a set-password or reset link. */
+  'user.setup_link',
+  /** Someone redeemed one and chose their own password. */
+  'user.password_chosen',
   'user.printers_set',
   'printer.create',
   'printer.update',

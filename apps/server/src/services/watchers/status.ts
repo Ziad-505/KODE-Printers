@@ -9,7 +9,8 @@ import { events } from '../events.js';
 import { notify, resolveCondition } from '../notify.js';
 import { defaultIppUri, readIppState } from '../transport/ipp.js';
 import { probePort, RAW_PORT } from '../transport/raw9100.js';
-import { readState, readSupplies, supplyPercent } from '../snmp/counters.js';
+import { readState, readSupplies, supplyFraction, supplyPercent } from '../snmp/counters.js';
+import { unitNoun } from '../snmp/oids.js';
 import { IPP_PORT } from '../transport/ipp.js';
 
 const log = subsystem('watcher:status');
@@ -217,21 +218,39 @@ async function updateSupplies(printer: PrinterWithSecrets): Promise<void> {
       colorant: supply.colorant,
       level: supply.level,
       maxLevel: supply.maxLevel,
+      unit: supply.unit,
     })),
   );
 
   for (const supply of supplies) {
-    const percent = supplyPercent(supply);
-    if (percent === null) continue;
+    /* The threshold runs on the fraction, the message on what the device said.
+     *
+     * `supplyPercent` is null for a cartridge measured in pages, because a
+     * percentage derived from a rated yield contradicts the printer's own
+     * display. The *fraction* is still the right thing to compare against a
+     * threshold — a cartridge with 260 of 26,000 pages left does need
+     * reordering — so the alert fires on that and describes the level in the
+     * unit the device chose, rather than announcing a number nobody can find
+     * on the machine. */
+    const fraction = supplyFraction(supply);
+    if (fraction === null) continue;
 
-    if (percent <= 10) {
+    const percent = supplyPercent(supply);
+    const remaining =
+      percent !== null
+        ? `${percent}%`
+        : supply.level !== null && unitNoun(supply.unit)
+          ? `about ${supply.level} ${unitNoun(supply.unit)} from empty`
+          : `low`;
+
+    if (fraction <= 0.1) {
       await notify(
         {
           type: 'printer.supply_low',
-          severity: percent <= 3 ? 'critical' : 'warning',
+          severity: fraction <= 0.03 ? 'critical' : 'warning',
           printerId: printer.id,
-          message: `${printer.name}: ${supply.name} is at ${percent}%.`,
-          payload: { supply: supply.name, percent },
+          message: `${printer.name}: ${supply.name} is ${remaining}.`,
+          payload: { supply: supply.name, percent, level: supply.level, unit: supply.unit },
           dedupeKey: `printer:${printer.id}:supply:${supply.index}`,
         },
         pool,
@@ -242,7 +261,7 @@ async function updateSupplies(printer: PrinterWithSecrets): Promise<void> {
     const burn = await statsModel.supplyBurnRate(pool, printer.id, supply.index);
     if (!burn || burn.percentPerDay <= 0) continue;
 
-    const daysRemaining = Math.floor(percent / burn.percentPerDay);
+    const daysRemaining = Math.floor((fraction * 100) / burn.percentPerDay);
     if (daysRemaining <= 14) {
       await notify(
         {
@@ -250,9 +269,9 @@ async function updateSupplies(printer: PrinterWithSecrets): Promise<void> {
           severity: 'info',
           printerId: printer.id,
           message:
-            `${printer.name}: ${supply.name} is at ${percent}% and is on track to run out in ` +
+            `${printer.name}: ${supply.name} is ${remaining} and is on track to run out in ` +
             `about ${daysRemaining} day${daysRemaining === 1 ? '' : 's'}.`,
-          payload: { supply: supply.name, percent, daysRemaining },
+          payload: { supply: supply.name, percent, level: supply.level, daysRemaining },
           dedupeKey: `printer:${printer.id}:supply-forecast:${supply.index}`,
         },
         pool,

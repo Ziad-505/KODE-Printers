@@ -10,6 +10,7 @@ import {
   IppError,
 } from '../../apps/server/src/services/transport/ipp.js';
 import { sendRaw, probePort } from '../../apps/server/src/services/transport/raw9100.js';
+import { blockingReasons, stripReasonSuffix } from '../../packages/shared/src/constants.js';
 
 /**
  * §B17.2 scenarios 14 and 15, against the harness rather than hardware.
@@ -111,7 +112,40 @@ describe('15. IPP transient failure must not demote the printer', () => {
 
     // Low toner means "someone should order some", not "stop printing".
     expect(state.status).toBe('degraded');
-    expect(state.stateReasons).toContain('toner-low');
+    // The suffix is kept, not stripped: it is the device's own verdict on
+    // whether the condition stops printing, and nothing else carries it.
+    expect(state.stateReasons).toContain('toner-low-warning');
+    expect(state.stateReasons.map(stripReasonSuffix)).toContain('toner-low');
+  });
+
+  it('does not stop a printer that reports a blocking keyword as a warning', async () => {
+    // The Xerox WorkCentre 7835 case. Paper in tray 1, trays 2–5 empty, so the
+    // device emits one `media-empty-warning` per empty tray while staying idle.
+    // Stripping the suffix turned that into `media-empty` and the queue refused
+    // every job to a printer that was ready to take them.
+    await printer.close();
+    printer = new FakeIppPrinter({
+      stateReasons: ['media-empty-warning', 'media-empty-warning', 'toner-low-warning'],
+    });
+    const port = await printer.listen();
+
+    const state = await readIppState(`ipp://127.0.0.1:${port}/ipp/print`, 4000);
+
+    expect(state.status).toBe('degraded');
+    expect(blockingReasons(state.stateReasons)).toEqual([]);
+    // Repeats are per-subunit; the board shows a condition, not a tally.
+    expect(state.stateReasons).toEqual(['media-empty-warning', 'toner-low-warning']);
+  });
+
+  it('still stops a printer that reports the same keyword as an error', async () => {
+    await printer.close();
+    printer = new FakeIppPrinter({ stateReasons: ['media-empty-error'] });
+    const port = await printer.listen();
+
+    const state = await readIppState(`ipp://127.0.0.1:${port}/ipp/print`, 4000);
+
+    expect(state.status).toBe('offline');
+    expect(blockingReasons(state.stateReasons)).toEqual(['media-empty-error']);
   });
 });
 

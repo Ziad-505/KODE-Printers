@@ -37,6 +37,37 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+  # A throwaway database for `npm test`, behind a profile so it never starts
+  # with the ordinary stack.
+  #
+  # Separate from `db` on purpose. The integration suite TRUNCATEs every table
+  # between tests, and pointing it at the development database — one typo in
+  # DATABASE_URL away — would wipe whatever an engineer had set up to look at.
+  # A distinct port, distinct credentials and a distinct database name make
+  # that mistake impossible rather than merely unlikely.
+  #
+  # The credentials are fixed and public because the data is disposable and the
+  # port is bound to loopback. Nothing here ever holds a real record.
+  db-test:
+    image: postgres:16-alpine
+    profiles: ['test']
+    ports:
+      - '127.0.0.1:5434:5432'
+    environment:
+      POSTGRES_DB: kode_printer_test
+      POSTGRES_USER: kode_test
+      POSTGRES_PASSWORD: kode_test
+    # No named volume: a fresh container every time is the point, and it keeps
+    # a half-migrated schema from surviving into the next run.
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U kode_test -d kode_printer_test']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
   app:
     build:
       context: .

@@ -59,9 +59,17 @@ export declare function PageHeader({ eyebrow, title, subtitle, actions, }: {
 export declare function StatusDot({ status }: {
     status: PrinterStatus;
 }): ReactElement;
-export declare function StatusBadge({ status, reasons, }: {
+/**
+ * The status of a printer, said in words.
+ *
+ * `label` is passed in rather than derived here, because the translation from
+ * IPP keywords to English lives in `lib/plain.ts` and must not be duplicated.
+ * This component used to render `reasons[0].replace(/-/g, ' ')`, which is how
+ * "media empty" reached a receptionist's screen.
+ */
+export declare function StatusBadge({ status, label, }: {
     status: PrinterStatus;
-    reasons?: readonly string[];
+    label?: string | undefined;
 }): ReactElement;
 export declare function Badge({ children, tone, }: {
     children: ReactNode;
@@ -104,7 +112,7 @@ export declare function Modal({ open, onClose, title, children, footer, }: {
     title: string;
     children: ReactNode;
     footer?: ReactNode;
-}): ReactElement;
+}): ReactElement | null;
 export interface Toast {
     id: number;
     tone: 'info' | 'success' | 'warning' | 'error';
@@ -157,5 +165,7 @@ export declare const BellIcon: () => ReactElement;
 export declare const UploadIcon: () => ReactElement;
 export declare const QrIcon: () => ReactElement;
 export declare const CheckIcon: () => ReactElement;
+export declare const HomeIcon: () => ReactElement;
+export declare const PeopleIcon: () => ReactElement;
 export {};
 //# sourceMappingURL=ui.d.ts.map

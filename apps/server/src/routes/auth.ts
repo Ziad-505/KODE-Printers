@@ -1,13 +1,21 @@
 import { Router } from 'express';
-import { changePasswordSchema, errors, loginSchema, pushSubscriptionSchema } from '@kode/shared';
+import { z } from 'zod';
+import {
+  changePasswordSchema,
+  errors,
+  loginSchema,
+  pushSubscriptionSchema,
+  redeemSetupLinkSchema,
+} from '@kode/shared';
 import { config } from '../config/index.js';
 import { pool } from '../db/pool.js';
 import { usersModel } from '../models/users.js';
 import { authenticate, actorOf } from '../middlewares/auth.js';
 import { asyncHandler, clientIp } from '../middlewares/context.js';
-import { loginLimiter } from '../middlewares/rateLimit.js';
-import { body, validateBody } from '../middlewares/validate.js';
+import { loginLimiter, setPasswordLimiter } from '../middlewares/rateLimit.js';
+import { body, params, validateBody, validateParams } from '../middlewares/validate.js';
 import * as auth from '../services/auth/index.js';
+import { describeSetupLink, redeemSetupLink } from '../services/auth/setupLinks.js';
 import { savePushSubscription } from '../services/notify.js';
 
 export const authRouter = Router();
@@ -147,6 +155,65 @@ authRouter.post(
     // Every session ended, including this one: the client must sign in again.
     res.clearCookie(REFRESH_COOKIE, { path: '/api/auth' });
     res.json({ ok: true, reauthenticationRequired: true });
+  }),
+);
+
+/* ------------------------------------------------------ set-password links */
+
+const setupTokenParams = z.object({
+  token: z
+    .string()
+    .trim()
+    .min(20)
+    .max(200)
+    .regex(/^[A-Za-z0-9_-]+$/),
+});
+
+/**
+ * What the set-password page shows before anyone has authenticated.
+ *
+ * Unauthenticated by necessity — the whole point is that the person has no way
+ * in yet. Rate limited, because the alternative is a free oracle for guessing
+ * tokens, and the response is deliberately thin: a name to greet them by and
+ * the expiry. An unknown, spent or expired link produces one indistinguishable
+ * refusal.
+ */
+authRouter.get(
+  '/set-password/:token',
+  setPasswordLimiter,
+  validateParams(setupTokenParams),
+  asyncHandler(async (req, res) => {
+    const { token } = params(req, setupTokenParams);
+    res.json(await describeSetupLink(token));
+  }),
+);
+
+/**
+ * Redeem the link: choose a password and come out signed in.
+ *
+ * Signing them in here is deliberate. They have just proved possession of a
+ * single-use secret and chosen a password seconds ago; sending them back to
+ * the sign-in form to type it again is the step where people give up.
+ */
+authRouter.post(
+  '/set-password',
+  setPasswordLimiter,
+  validateBody(redeemSetupLinkSchema),
+  asyncHandler(async (req, res) => {
+    const input = body(req, redeemSetupLinkSchema);
+
+    const { result, refreshToken, refreshMaxAgeSeconds } = await redeemSetupLink(
+      input.token,
+      input.password,
+      {
+        ip: clientIp(req),
+        userAgent: req.get('user-agent')?.slice(0, 300) ?? null,
+        requestId: req.requestId,
+      },
+    );
+
+    res.cookie(REFRESH_COOKIE, refreshToken, refreshCookieOptions(refreshMaxAgeSeconds));
+    res.json(result);
   }),
 );
 

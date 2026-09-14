@@ -15,7 +15,15 @@
 process.env.NODE_ENV = 'test';
 process.env.KODE_DEBUG = 'true';
 
-process.env.DATABASE_URL ??= 'postgres://kode_test:kode_test@127.0.0.1:5432/kode_printer_test';
+/**
+ * The throwaway database from `docker compose --profile test up -d db-test`.
+ *
+ * Port 5434, not 5432: a developer's own PostgreSQL usually holds 5432, and the
+ * application's own database container publishes 5433. Pointing the suite at
+ * either would have it TRUNCATE tables somebody cared about. A third port that
+ * belongs to nothing else is the cheapest way to make that impossible.
+ */
+process.env.DATABASE_URL ??= 'postgres://kode_test:kode_test@127.0.0.1:5434/kode_printer_test';
 process.env.JWT_SECRET ??= 'test-only-jwt-secret-not-used-anywhere-real-0123456789';
 process.env.SECRET_KEY ??= 'test-only-secret-key-not-used-anywhere-real-9876543210';
 process.env.CORS_ORIGINS ??= 'http://localhost:5173';

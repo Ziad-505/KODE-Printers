@@ -1,11 +1,11 @@
-import type { ReactElement } from 'react';
+import type { CSSProperties, ReactElement } from 'react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import type { Paginated, Printer, PrinterSupply } from '@kode/shared';
 import { api, ApiError } from '../lib/api.js';
 import { useAuth } from '../lib/auth.js';
+import { printerCondition, supplyGaugePercent, supplyLevelText, supplyName } from '../lib/plain.js';
 import {
   Badge,
   Button,
@@ -22,6 +22,7 @@ import {
   ScanIcon,
   Skeleton,
   StatusBadge,
+  StatusDot,
   useToast,
 } from '../components/ui.js';
 
@@ -71,26 +72,40 @@ export function Fleet(): ReactElement {
     return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b));
   }, [filtered]);
 
-  const counts = useMemo(
-    () => ({
-      online: printers.filter((p) => p.status === 'online').length,
-      degraded: printers.filter((p) => p.status === 'degraded').length,
-      offline: printers.filter((p) => p.status === 'offline').length,
-      untracked: printers.filter((p) => p.walkupTrackingUnavailable).length,
-    }),
-    [printers],
-  );
+  /* Every printer lands in exactly one bucket.
+   *
+   * Counting by `status` alone left `unknown` devices — one that has never
+   * answered a poll — in no bucket, so the summary described four printers out
+   * of five and quietly lost the one most likely to need looking at. */
+  const counts = useMemo(() => {
+    const tally = { ready: 0, attention: 0, stopped: 0, unchecked: 0 };
+    for (const printer of printers) {
+      const kind = printerCondition(printer).kind;
+      if (kind === 'ready') tally.ready += 1;
+      else if (kind === 'attention') tally.attention += 1;
+      else if (kind === 'stopped') tally.stopped += 1;
+      else tally.unchecked += 1;
+    }
+    return { ...tally, untracked: printers.filter((p) => p.walkupTrackingUnavailable).length };
+  }, [printers]);
+
+  /** "2 ready, 1 needs attention" — only the parts that are not zero. */
+  const summary = [
+    counts.ready > 0 ? `${counts.ready} ready` : null,
+    counts.attention > 0
+      ? `${counts.attention} need${counts.attention === 1 ? 's' : ''} attention`
+      : null,
+    counts.stopped > 0 ? `${counts.stopped} stopped` : null,
+    counts.unchecked > 0 ? `${counts.unchecked} not checked yet` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <>
       <PageHeader
-        eyebrow="Fleet"
         title="Printers"
-        subtitle={
-          printers.length > 0
-            ? `${counts.online} ready · ${counts.degraded} need attention · ${counts.offline} offline`
-            : undefined
-        }
+        subtitle={printers.length > 0 ? summary : undefined}
         actions={
           <>
             <Input
@@ -111,11 +126,13 @@ export function Fleet(): ReactElement {
 
       {counts.untracked > 0 ? (
         <div style={{ marginBottom: 'var(--space-5)' }}>
+          {/* The same fact §B8.5 requires, said the way somebody would say it.
+              "Walk-up tracking unavailable" is the server's phrase and means
+              nothing to the person reading a report. */}
           <Note>
-            {counts.untracked} printer{counts.untracked === 1 ? ' has' : 's have'} walk-up tracking
-            unavailable, so activity started at the device is not recorded for{' '}
-            {counts.untracked === 1 ? 'it' : 'them'}. Reports covering{' '}
-            {counts.untracked === 1 ? 'this printer' : 'these printers'} will understate real usage.
+            {counts.untracked === 1
+              ? 'One printer cannot tell us when someone uses it directly, so the totals here and in every report are a little low.'
+              : `${counts.untracked} printers cannot tell us when someone uses them directly, so the totals here and in every report are a little low.`}
           </Note>
         </div>
       ) : null}
@@ -143,29 +160,35 @@ export function Fleet(): ReactElement {
           {grouped.map(([zone, group]) => (
             <section key={zone}>
               <h2 className="section-title kode-slash">{zone}</h2>
-              <div className="grid-cards">
+              <div className="grid-cards kp-stagger">
                 {group.map((printer, index) => (
-                  <motion.div
-                    key={printer.id}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: 0.3,
-                      // A short stagger so a grid of cards arrives as a wave
-                      // rather than a flash. Capped so a large fleet does not
-                      // take two seconds to appear.
-                      delay: Math.min(index * 0.035, 0.28),
-                      ease: [0.16, 1, 0.3, 1],
-                    }}
-                  >
+                  <div key={printer.id} style={{ '--kp-index': index } as CSSProperties}>
                     <PrinterCard printer={printer} onShowQr={() => setQrPrinter(printer)} />
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             </section>
           ))}
         </div>
       )}
+
+      {/* Temporary, for the design comparison. At the bottom rather than in the
+          header on purpose: a control up there would change the very layout
+          being judged. Comes out with the decision. */}
+      <Link
+        to="/fleet/next"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          minHeight: 44,
+          marginTop: 'var(--space-6)',
+          fontSize: 'var(--text-xs)',
+          fontWeight: 700,
+          color: 'var(--kode-blue)',
+        }}
+      >
+        Try the proposed design →
+      </Link>
 
       <QrModal printer={qrPrinter} onClose={() => setQrPrinter(null)} />
     </>
@@ -198,44 +221,50 @@ function PrinterCard({
       }),
   });
 
-  const blocking = printer.stateReasons.filter((reason) => reason !== 'none');
+  const condition = printerCondition(printer);
 
   return (
     <Card interactive>
       <div className="card__body stack" style={{ gap: 'var(--space-4)' }}>
-        <div className="row row--between" style={{ alignItems: 'flex-start' }}>
-          <div style={{ minWidth: 0 }}>
-            <div className="truncate" style={{ fontWeight: 800, fontSize: 'var(--text-lg)' }}>
-              {printer.name}
+        {/* The name wins the width argument.
+         *
+         * Both children used to be free to size themselves, so a long condition
+         * label took the row and "Testing Xerox" rendered as "Te…". The name is
+         * the one thing that identifies the card, so it gets `flex: 1` and the
+         * badge is pushed onto its own line rather than allowed to squeeze it. */}
+        <div className="stack" style={{ gap: 'var(--space-2)' }}>
+          <div
+            className="row row--between"
+            style={{ alignItems: 'flex-start', gap: 'var(--space-3)' }}
+          >
+            <div style={{ minWidth: 0, flex: '1 1 auto' }}>
+              <div className="truncate" style={{ fontWeight: 800, fontSize: 'var(--text-lg)' }}>
+                {printer.name}
+              </div>
+              <div className="dim truncate" style={{ fontSize: 'var(--text-xs)' }}>
+                {[printer.area, printer.model].filter(Boolean).join(' · ') || printer.ipAddress}
+              </div>
             </div>
-            <div className="dim truncate" style={{ fontSize: 'var(--text-xs)' }}>
-              {[printer.area, printer.model].filter(Boolean).join(' · ') || printer.ipAddress}
-            </div>
+            <StatusDot status={printer.status} />
           </div>
-          <StatusBadge status={printer.status} reasons={printer.stateReasons} />
+          <div className="row row--wrap" style={{ gap: 'var(--space-2)' }}>
+            <StatusBadge status={printer.status} label={condition.text} />
+          </div>
         </div>
 
-        {blocking.length > 0 && printer.status !== 'online' ? (
-          <div
-            style={{
-              fontSize: 'var(--text-xs)',
-              color: 'var(--text-secondary)',
-              padding: 'var(--space-2) var(--space-3)',
-              background: 'var(--surface-inset)',
-              borderRadius: 'var(--radius-sm)',
-            }}
-          >
-            {blocking.map((reason) => reason.replace(/-/g, ' ')).join(' · ')}
+        {condition.kind === 'stopped' ? (
+          <div className="note note--critical" role="status">
+            <span aria-hidden="true">⚠</span>
+            <span>Anything queued for it will print by itself once that is sorted.</span>
           </div>
         ) : null}
 
         {printer.supplies.length > 0 ? <Supplies supplies={printer.supplies} /> : null}
 
         <div className="row row--wrap" style={{ gap: 'var(--space-2)' }}>
-          {printer.isDraining ? <Badge tone="degraded">maintenance</Badge> : null}
-          {printer.walkupTrackingUnavailable ? <Badge>walk-up not tracked</Badge> : null}
-          {printer.capabilities.ipp.supported ? <Badge tone="info">IPP</Badge> : null}
-          {printer.scanFolder ? <Badge>scan tracked</Badge> : null}
+          {printer.isDraining ? <Badge tone="degraded">In maintenance</Badge> : null}
+          {printer.walkupTrackingUnavailable ? <Badge>Use here is not counted</Badge> : null}
+          {printer.scanFolder ? <Badge>Scans are picked up</Badge> : null}
         </div>
 
         <div className="row" style={{ gap: 'var(--space-2)', marginTop: 'auto' }}>
@@ -278,7 +307,9 @@ function PrinterCard({
  */
 function Supplies({ supplies }: { supplies: readonly PrinterSupply[] }): ReactElement {
   const colorFor = (supply: PrinterSupply): string => {
-    const percent = supply.percent ?? 100;
+    // The gauge fraction, not the displayed figure: a cartridge measured in
+    // pages has no percentage to threshold on, and it still needs to turn red.
+    const percent = supplyGaugePercent(supply) ?? 100;
     if (percent <= 10) return 'var(--status-offline)';
     if (percent <= 25) return 'var(--status-degraded)';
     const colorant = supply.colorant?.toLowerCase() ?? '';
@@ -291,7 +322,7 @@ function Supplies({ supplies }: { supplies: readonly PrinterSupply[] }): ReactEl
   return (
     <div className="stack" style={{ gap: 'var(--space-2)' }}>
       {supplies
-        .filter((supply) => supply.percent !== null)
+        .filter((supply) => supplyLevelText(supply) !== null)
         .slice(0, 5)
         .map((supply) => (
           <div key={supply.name}>
@@ -299,13 +330,22 @@ function Supplies({ supplies }: { supplies: readonly PrinterSupply[] }): ReactEl
               className="row row--between"
               style={{ fontSize: 'var(--text-2xs)', marginBottom: 3 }}
             >
-              <span className="dim truncate">{supply.name}</span>
-              <span style={{ fontWeight: 700, color: colorFor(supply) }}>{supply.percent}%</span>
+              {/* `title` keeps the part and serial number one hover away, for
+                  whoever is actually ordering the replacement. */}
+              <span className="dim truncate" title={supply.name}>
+                {supplyName(supply.name)}
+              </span>
+              <span style={{ fontWeight: 700, color: colorFor(supply) }}>
+                {supplyLevelText(supply)}
+              </span>
             </div>
             <div className="gauge">
               <div
                 className="gauge__fill"
-                style={{ width: `${supply.percent ?? 0}%`, background: colorFor(supply) }}
+                style={{
+                  width: `${supplyGaugePercent(supply) ?? 0}%`,
+                  background: colorFor(supply),
+                }}
               />
             </div>
             {supply.estimatedDaysRemaining !== null && supply.estimatedDaysRemaining <= 21 ? (

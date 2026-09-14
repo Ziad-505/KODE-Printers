@@ -1,4 +1,10 @@
-import { AppError, BLOCKING_STATE_REASONS, type AppSettings, type Severity } from '@kode/shared';
+import {
+  AppError,
+  blockingReasons,
+  stripReasonSuffix,
+  type AppSettings,
+  type Severity,
+} from '@kode/shared';
 import type { PrinterWithSecrets } from '../../models/printers.js';
 
 /**
@@ -146,7 +152,7 @@ export function checkSubmission(context: SafetyContext): SafetyDecision {
  * backoff, which is exactly right for "someone is refilling the paper".
  */
 export function checkDispatch(printer: PrinterWithSecrets): SafetyDecision {
-  const blocking = printer.stateReasons.filter((reason) => BLOCKING_STATE_REASONS.has(reason));
+  const blocking = blockingReasons(printer.stateReasons);
 
   if (blocking.length > 0) {
     return {
@@ -200,9 +206,16 @@ export function describeBlockingState(printerName: string, reasons: readonly str
       'the device at that address is not the one on record, so it is not safe to send to',
   };
 
-  const described = reasons
-    .map((reason) => PHRASES[reason])
-    .filter((phrase): phrase is string => phrase !== undefined);
+  // Reasons arrive with their IPP severity suffix attached; the phrase table is
+  // keyed on the bare keyword, and a `media-empty-error` that fell through to
+  // "it reported a problem" would be a worse message than the one it replaced.
+  const described = [
+    ...new Set(
+      reasons
+        .map((reason) => PHRASES[stripReasonSuffix(reason)])
+        .filter((phrase): phrase is string => phrase !== undefined),
+    ),
+  ];
 
   const detail =
     described.length === 0

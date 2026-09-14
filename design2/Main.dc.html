@@ -7,275 +7,288 @@
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Montserrat:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap">
   <style>
-    body { margin: 0; background: #faf7f2; }
+    body { margin: 0; background: #f6f4f0; }
     a { color: #2150a0; } a:hover { color: #173770; }
-    .ui { font-family: 'Montserrat', 'Segoe UI', system-ui, sans-serif; }
-    .dp { font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-weight: 400; }
-    .eyebrow { font-size: 10px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #a2988b; }
-    .card { background: #ffffff; border: 1px solid #e6ded2; border-radius: 16px; box-shadow: 0 1px 2px rgb(36 31 26 / 4%), 0 10px 28px -18px rgb(36 31 26 / 18%); }
-    .nav { display: flex; align-items: center; gap: 12px; height: 42px; padding: 0 14px; border-radius: 10px; font-size: 13px; font-weight: 500; color: #6e6357; }
-    .nav--on { background: #f2ece3; color: #241f1a; font-weight: 600; }
-    .kpi__n { font-size: 40px; line-height: 1; color: #241f1a; letter-spacing: -0.01em; }
-    .kpi__s { font-size: 11px; color: #a2988b; margin-top: 8px; }
-    .dot { width: 7px; height: 7px; border-radius: 999px; flex-shrink: 0; }
-    .prow { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid #efe8de; }
-    .arow { display: flex; align-items: center; gap: 14px; padding: 13px 0; border-bottom: 1px solid #efe8de; }
-    .tag { display: inline-flex; align-items: center; height: 21px; padding: 0 9px; border-radius: 999px; font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+    .ui { font-family: 'Figtree', 'Segoe UI', system-ui, sans-serif; color: #2b2722; }
+    .brand { font-family: 'Montserrat', 'Segoe UI', sans-serif; }
+    .card { background: #ffffff; border: 1px solid #eae5dd; border-radius: 18px; box-shadow: 0 1px 2px rgb(43 39 34 / 4%), 0 8px 20px -12px rgb(43 39 34 / 10%); }
+    .nav { display: flex; align-items: center; gap: 13px; height: 44px; padding: 0 14px; border-radius: 12px; font-size: 14.5px; font-weight: 500; color: #6b6459; }
+    .nav--on { background: #edf2fa; color: #2150a0; font-weight: 600; }
+    .h2 { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+    .sub { font-size: 13px; color: #9c948a; margin-top: 3px; }
+    .big { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+    .arow { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid #f2eee7; }
+    .prow { display: flex; align-items: center; gap: 13px; padding: 15px 0; border-bottom: 1px solid #f2eee7; }
   </style>
 </helmet>
 
-<div class="ui" style="width: 1440px; height: 960px; background: #faf7f2; color: #241f1a; display: flex; overflow: hidden;">
+<div class="ui" style="width: 1440px; height: 960px; background: #f6f4f0; display: flex; overflow: hidden;">
 
-  <div style="width: 248px; flex-shrink: 0; background: #ffffff; border-right: 1px solid #e6ded2; display: flex; flex-direction: column; padding: 26px 18px 22px;">
+  <div style="width: 240px; flex-shrink: 0; background: #ffffff; border-right: 1px solid #eae5dd; display: flex; flex-direction: column; padding: 22px 14px 18px;">
 
-    <div style="display: flex; align-items: center; gap: 11px; padding: 0 6px 26px;">
-      <svg viewBox="0 0 100 102" width="26" height="27" role="img" aria-label="KODE">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 8px 24px;">
+      <svg viewBox="0 0 100 102" width="24" height="24" role="img" aria-label="KODE">
         <path fill="#2150a0" fill-rule="evenodd" d="M0 0 L25.93 0 L27.92.57 L30.48 1.99 L33.33 5.13 L34.47 7.41 L35.04 11.97 L43.3 2.85 L46.72.85 L49.86 0 L85.75 0 L85.75 5.7 L54.13 44.44 L51.28 46.72 L46.44 48.43 L11.11 48.43 L7.98 47.58 L4.56 45.58 L1.71 42.17 L.28 38.75 L0 .28Z M8.83 8.26 L25.36 8.26 L26.78 9.4 L27.07 29.91 L28.77 31.91 L30.2 31.62 L31.62 30.2 L49.29 9.12 L51.28 8.26 L73.5 8.26 L49.57 37.61 L47.58 39.6 L46.15 40.17 L12.25 40.17 L10.83 39.6 L8.83 37.04 L8.83 8.55Z M10.26 53.56 L47.29 53.56 L51.57 55.27 L54.99 58.4 L90.31 101.99 L49.29 101.71 L44.44 99.72 L42.17 98.01 L35.33 89.74 L34.76 90.03 L34.76 93.45 L33.62 96.3 L31.05 99.43 L28.21 101.14 L23.93 101.99 L.28 101.99 L.28 62.96 L1.71 59.54 L3.7 56.98 L7.41 54.42 L9.97 53.85Z M12.82 61.54 L45.58 61.54 L47.86 62.39 L73.22 93.45 L50.71 93.45 L49 92.59 L29.91 70.09 L27.92 70.37 L27.07 71.79 L26.78 92.31 L25.64 93.45 L8.83 93.45 L8.83 64.96 L10.54 62.39 L12.54 61.82Z M3.42 3.42 L25.64 3.42 L28.21 4.56 L30.48 6.84 L31.62 9.97 L31.91 21.65 L43.02 7.98 L45.58 5.41 L48.15 3.99 L50.14 3.42 L83.19 3.42 L51.85 41.88 L49.86 43.59 L46.15 45.01 L11.4 45.01 L6.84 43.02 L4.27 39.89 L3.42 37.32 L3.42 3.7Z M10.54 56.98 L47.01 56.98 L49.29 57.83 L52.71 60.97 L83.19 98.58 L51.28 98.58 L47.86 97.72 L43.59 94.59 L31.91 80.34 L31.62 91.74 L30.48 94.87 L27.92 97.44 L24.5 98.58 L3.42 98.58 L3.42 64.67 L5.7 59.83 L8.26 57.83 L10.26 57.26Z"/>
       </svg>
-      <div>
-        <div style="font-size: 14px; font-weight: 700; letter-spacing: 0.02em;">KODE</div>
-        <div style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #a2988b; margin-top: 1px;">Printer</div>
-      </div>
+      <div class="brand" style="font-size: 13.5px; font-weight: 800; letter-spacing: 0.03em;">KODE <span style="font-weight: 700; color: #9c948a;">PRINTER</span></div>
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 3px;">
       <div class="nav nav--on">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
-        Dashboard
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/></svg>
+        Home
       </div>
       <div class="nav">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7" rx="1"/></svg>
-        Print
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7" rx="1.5"/></svg>
+        Print a document
       </div>
       <div class="nav">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><circle cx="7" cy="7.5" r=".8"/></svg>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><circle cx="6.8" cy="7.5" r=".9"/></svg>
         Printers
+        <span style="margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: #fbefee; color: #c15a50; font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center;">1</span>
       </div>
       <div class="nav">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M2 12h20"/></svg>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M2 12h20"/></svg>
         Scans
-        <div style="margin-left: auto; height: 18px; min-width: 18px; padding: 0 5px; border-radius: 999px; background: #b0764f; color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center;">3</div>
+        <span style="margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: #f3f0ea; color: #6b6459; font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center;">3</span>
       </div>
       <div class="nav">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
         History
       </div>
       <div class="nav">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20V10"/><path d="M9 20V4"/><path d="M15 20v-7"/><path d="M21 20V8"/></svg>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+        People
+      </div>
+      <div class="nav">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20V10"/><path d="M9 20V4"/><path d="M15 20v-7"/><path d="M21 20V8"/></svg>
         Reports
       </div>
     </div>
 
-    <div style="height: 1px; background: #efe8de; margin: 20px 6px;"></div>
-
-    <div style="display: flex; flex-direction: column; gap: 3px;">
+    <div style="margin-top: auto;">
       <div class="nav">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 9 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 9a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg>
-        Administration
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.8 1.1V21a2 2 0 1 1-4 0v-.2A1.6 1.6 0 0 0 7.3 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.8H1a2 2 0 1 1 0-4h.2A1.6 1.6 0 0 0 4.6 7.3a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 2.8-1.1V1a2 2 0 1 1 4 0v.2a1.6 1.6 0 0 0 2.8 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.8H23a2 2 0 1 1 0 4h-.2a1.6 1.6 0 0 0-1.4 1z"/></svg>
+        Settings
       </div>
-    </div>
-
-    <div style="margin-top: auto; display: flex; align-items: center; gap: 11px; padding: 12px 8px 0; border-top: 1px solid #efe8de;">
-      <div style="width: 34px; height: 34px; border-radius: 999px; background: #f2ece3; border: 1px solid #e6ded2; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #6e6357;">AH</div>
-      <div style="min-width: 0;">
-        <div style="font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Ahmed Hassan</div>
-        <div style="font-size: 10.5px; color: #a2988b;">Administrator</div>
+      <div style="display: flex; align-items: center; gap: 11px; padding: 14px 8px 0; margin-top: 10px; border-top: 1px solid #f2eee7;">
+        <div style="width: 36px; height: 36px; border-radius: 999px; background: #edf2fa; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 700; color: #2150a0;">AH</div>
+        <div style="min-width: 0; flex-grow: 1;">
+          <div style="font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Ahmed Hassan</div>
+          <div style="font-size: 11.5px; color: #9c948a;">Administrator</div>
+        </div>
       </div>
     </div>
 
   </div>
 
-  <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column;">
+  <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden;">
 
-    <div style="height: 84px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; border-bottom: 1px solid #e6ded2;">
+    <div style="flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 26px 30px 0;">
       <div>
-        <div class="dp" style="font-size: 27px; line-height: 1.1;">Good morning, Ahmed</div>
-        <div style="font-size: 12px; color: #a2988b; margin-top: 4px;">Monday, 24 August &middot; 2 jobs in the queue</div>
+        <div style="font-size: 25px; font-weight: 700; letter-spacing: -0.02em;">Hi Ahmed</div>
+        <div style="font-size: 14px; color: #6b6459; margin-top: 5px;">Here&rsquo;s what&rsquo;s happening with printing today.</div>
       </div>
       <div style="display: flex; align-items: center; gap: 12px;">
-        <div style="display: flex; align-items: center; height: 38px; padding: 0 6px; border-radius: 10px; background: #ffffff; border: 1px solid #e6ded2;">
-          <div style="height: 28px; padding: 0 13px; border-radius: 7px; background: #f2ece3; font-size: 12px; font-weight: 600; display: flex; align-items: center;">Today</div>
-          <div style="height: 28px; padding: 0 13px; font-size: 12px; color: #6e6357; display: flex; align-items: center;">30 days</div>
-          <div style="height: 28px; padding: 0 13px; font-size: 12px; color: #6e6357; display: flex; align-items: center;">Year</div>
+        <div style="display: flex; align-items: center; gap: 10px; width: 250px; height: 44px; padding: 0 15px; border-radius: 12px; background: #ffffff; border: 1px solid #eae5dd;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9c948a" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <span style="font-size: 14px; color: #9c948a;">Search</span>
         </div>
-        <div style="width: 38px; height: 38px; border-radius: 10px; background: #ffffff; border: 1px solid #e6ded2; display: flex; align-items: center; justify-content: center; position: relative;">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6e6357" stroke-width="1.7" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
-          <div style="position: absolute; top: 8px; right: 9px; width: 7px; height: 7px; border-radius: 999px; background: #a9524a; border: 1.5px solid #fff;"></div>
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: #ffffff; border: 1px solid #eae5dd; display: flex; align-items: center; justify-content: center; position: relative;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b6459" stroke-width="1.9" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span style="position: absolute; top: 10px; right: 11px; width: 8px; height: 8px; border-radius: 999px; background: #c15a50; border: 2px solid #fff;"></span>
         </div>
-        <div style="height: 38px; padding: 0 18px; border-radius: 10px; background: #2150a0; color: #fff; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 9px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7" rx="1"/></svg>
-          Print something
+        <div style="height: 44px; padding: 0 20px; border-radius: 12px; background: #2150a0; color: #fff; font-size: 14.5px; font-weight: 600; display: flex; align-items: center; gap: 9px;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7" rx="1.5"/></svg>
+          Print a document
         </div>
       </div>
     </div>
 
-    <div style="flex-grow: 1; padding: 26px 32px; display: flex; flex-direction: column; gap: 22px; overflow: hidden;">
+    <div style="flex-grow: 1; padding: 22px 30px 28px; display: flex; flex-direction: column; gap: 20px; overflow: hidden;">
 
-      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px;">
-        <div class="card" style="padding: 20px 22px;">
-          <div class="eyebrow">Impressions today</div>
-          <div class="dp kpi__n" style="margin-top: 14px;">148</div>
-          <div class="kpi__s">across 12 jobs &middot; 132 mono, 16 colour</div>
+      <div style="flex-shrink: 0; display: flex; align-items: center; gap: 18px; padding: 18px 22px; border-radius: 18px; background: #fbefee; border: 1px solid #f2ddd9;">
+        <div style="width: 46px; height: 46px; border-radius: 999px; background: #ffffff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c15a50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
         </div>
-        <div class="card" style="padding: 20px 22px;">
-          <div class="eyebrow">Estimated cost</div>
-          <div class="dp kpi__n" style="margin-top: 14px;">EGP 4.85</div>
-          <div class="kpi__s">at 0.015 mono &middot; 0.12 colour</div>
+        <div style="flex-grow: 1;">
+          <div style="font-size: 16px; font-weight: 700;">The printer in the Academy office has run out of paper</div>
+          <div style="font-size: 13.5px; color: #6b6459; margin-top: 4px;">One job is waiting for it. It will print by itself once someone refills the tray.</div>
         </div>
-        <div class="card" style="padding: 20px 22px;">
-          <div class="eyebrow">Scans</div>
-          <div class="dp kpi__n" style="margin-top: 14px;">7</div>
-          <div class="kpi__s"><span style="color: #b0764f; font-weight: 600;">3 unclaimed</span> in the inbox</div>
+        <div style="height: 40px; padding: 0 18px; border-radius: 11px; background: #ffffff; border: 1px solid #eadbd8; color: #2b2722; font-size: 14px; font-weight: 600; display: flex; align-items: center;">See the printer</div>
+      </div>
+
+      <div style="flex-shrink: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;">
+        <div class="card" style="padding: 22px 24px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 34px; height: 34px; border-radius: 10px; background: #edf2fa; display: flex; align-items: center; justify-content: center;">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2150a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            </div>
+            <div style="font-size: 14.5px; font-weight: 600;">Pages printed today</div>
+          </div>
+          <div class="big" style="margin-top: 16px;">148</div>
+          <div class="sub">From 12 documents across the club.</div>
         </div>
-        <div class="card" style="padding: 20px 22px;">
-          <div class="eyebrow">Sheets saved</div>
-          <div class="dp kpi__n" style="margin-top: 14px;">1,204</div>
-          <div class="kpi__s">by double-sided, last 30 days</div>
+        <div class="card" style="padding: 22px 24px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 34px; height: 34px; border-radius: 10px; background: #edf5f0; display: flex; align-items: center; justify-content: center;">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#4e8c63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            </div>
+            <div style="font-size: 14.5px; font-weight: 600;">Waiting to print</div>
+          </div>
+          <div class="big" style="margin-top: 16px;">2</div>
+          <div class="sub">They&rsquo;ll go through on their own.</div>
+        </div>
+        <div class="card" style="padding: 22px 24px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 34px; height: 34px; border-radius: 10px; background: #faf3e6; display: flex; align-items: center; justify-content: center;">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#c08a2e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M2 12h20"/></svg>
+            </div>
+            <div style="font-size: 14.5px; font-weight: 600;">Scans waiting</div>
+          </div>
+          <div class="big" style="margin-top: 16px;">3</div>
+          <div class="sub">Nobody has collected these yet.</div>
         </div>
       </div>
 
-      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 384px; gap: 22px; flex-grow: 1; min-height: 0;">
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 424px; gap: 20px; flex-grow: 1; min-height: 0;">
 
-        <div style="display: flex; flex-direction: column; gap: 22px; min-height: 0;">
+       <div style="display: flex; flex-direction: column; gap: 20px; min-height: 0;">
 
-          <div class="card" style="padding: 22px 24px 12px; flex-shrink: 0;">
-            <div style="display: flex; align-items: baseline; justify-content: space-between;">
-              <div>
-                <div style="font-size: 14px; font-weight: 600;">Impressions</div>
-                <div style="font-size: 11.5px; color: #a2988b; margin-top: 3px;">Last 30 days</div>
-              </div>
-              <div style="display: flex; gap: 18px;">
-                <div style="display: flex; align-items: center; gap: 7px; font-size: 11.5px; color: #6e6357;"><span class="dot" style="background: #2150a0;"></span>App</div>
-                <div style="display: flex; align-items: center; gap: 7px; font-size: 11.5px; color: #6e6357;"><span class="dot" style="background: #cbb9a3;"></span>Device activity</div>
-              </div>
+        <div class="card" style="padding: 20px 24px 10px; flex-shrink: 0;">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;">
+            <div>
+              <div class="h2">How much is being printed</div>
+              <div class="sub">Over the last month, across the whole club.</div>
             </div>
-
-            <svg width="100%" height="168" viewBox="0 0 720 168" preserveAspectRatio="none" style="margin-top: 16px; display: block;">
-              <defs>
-                <linearGradient id="fillApp" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#2150a0" stop-opacity="0.16"/>
-                  <stop offset="100%" stop-color="#2150a0" stop-opacity="0.02"/>
-                </linearGradient>
-              </defs>
-              <line x1="0" y1="42" x2="720" y2="42" stroke="#efe8de" stroke-width="1"/>
-              <line x1="0" y1="84" x2="720" y2="84" stroke="#efe8de" stroke-width="1"/>
-              <line x1="0" y1="126" x2="720" y2="126" stroke="#efe8de" stroke-width="1"/>
-              <path d="M0 148 L24 140 L48 132 L72 138 L96 118 L120 124 L144 152 L168 156 L192 126 L216 112 L240 118 L264 104 L288 110 L312 148 L336 152 L360 116 L384 96 L408 104 L432 88 L456 96 L480 142 L504 150 L528 100 L552 84 L576 92 L600 74 L624 82 L648 140 L672 148 L696 78 L720 66 L720 168 L0 168 Z" fill="url(#fillApp)"/>
-              <path d="M0 148 L24 140 L48 132 L72 138 L96 118 L120 124 L144 152 L168 156 L192 126 L216 112 L240 118 L264 104 L288 110 L312 148 L336 152 L360 116 L384 96 L408 104 L432 88 L456 96 L480 142 L504 150 L528 100 L552 84 L576 92 L600 74 L624 82 L648 140 L672 148 L696 78 L720 66" fill="none" stroke="#2150a0" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-              <path d="M0 160 L24 157 L48 154 L72 158 L96 150 L120 152 L144 163 L168 164 L192 151 L216 146 L240 149 L264 143 L288 145 L312 160 L336 162 L360 148 L384 140 L408 144 L432 137 L456 141 L480 159 L504 162 L528 142 L552 136 L576 139 L600 131 L624 134 L648 158 L672 161 L696 133 L720 128" fill="none" stroke="#cbb9a3" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="0"/>
-            </svg>
-            <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: #a2988b; padding: 6px 0 8px;">
-              <span>26 Jul</span><span>2 Aug</span><span>9 Aug</span><span>16 Aug</span><span>24 Aug</span>
+            <div style="display: flex; gap: 18px; padding-top: 4px;">
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #6b6459;"><span style="width: 10px; height: 10px; border-radius: 3px; background: #2150a0;"></span>Sent from the app</div>
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #6b6459;"><span style="width: 10px; height: 10px; border-radius: 3px; background: #d8cfbf;"></span>Done at the printer</div>
             </div>
           </div>
+          <svg width="100%" height="150" viewBox="0 0 720 150" preserveAspectRatio="none" style="display: block; margin-top: 10px;">
+            <defs>
+              <linearGradient id="gApp" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#2150a0" stop-opacity="0.20"/>
+                <stop offset="100%" stop-color="#2150a0" stop-opacity="0.02"/>
+              </linearGradient>
+              <linearGradient id="gWalk" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#c9bda9" stop-opacity="0.34"/>
+                <stop offset="100%" stop-color="#c9bda9" stop-opacity="0.04"/>
+              </linearGradient>
+            </defs>
+            <g stroke="#f2eee7" stroke-width="1">
+              <line x1="0" y1="28" x2="720" y2="28"/><line x1="0" y1="62" x2="720" y2="62"/><line x1="0" y1="96" x2="720" y2="96"/>
+            </g>
+            <line x1="0" y1="130" x2="720" y2="130" stroke="#eae5dd" stroke-width="1"/>
+            <path d="M0 122 C45 122 45 116 90 116 C135 116 135 126 180 126 C225 126 225 110 270 110 C315 110 315 120 360 120 C405 120 405 104 450 104 C495 104 495 114 540 114 C585 114 585 98 630 98 C675 98 675 92 720 92 L720 130 L0 130 Z" fill="url(#gWalk)"/>
+            <path d="M0 100 C45 100 45 82 90 82 C135 82 135 106 180 106 C225 106 225 66 270 66 C315 66 315 88 360 88 C405 88 405 54 450 54 C495 54 495 76 540 76 C585 76 585 42 630 42 C675 42 675 30 720 30 L720 130 L0 130 Z" fill="url(#gApp)"/>
+            <path d="M0 122 C45 122 45 116 90 116 C135 116 135 126 180 126 C225 126 225 110 270 110 C315 110 315 120 360 120 C405 120 405 104 450 104 C495 104 495 114 540 114 C585 114 585 98 630 98 C675 98 675 92 720 92" fill="none" stroke="#d8cfbf" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M0 100 C45 100 45 82 90 82 C135 82 135 106 180 106 C225 106 225 66 270 66 C315 66 315 88 360 88 C405 88 405 54 450 54 C495 54 495 76 540 76 C585 76 585 42 630 42 C675 42 675 30 720 30" fill="none" stroke="#2150a0" stroke-width="2.8" stroke-linecap="round"/>
+            <circle cx="720" cy="30" r="5" fill="#ffffff" stroke="#2150a0" stroke-width="3"/>
+          </svg>
+          <div style="display: flex; justify-content: space-between; font-size: 12.5px; color: #b5ac9f; padding: 4px 0 6px;">
+            <span>Four weeks ago</span><span>Three</span><span>Two</span><span>Last week</span><span>This week</span>
+          </div>
+        </div>
 
-          <div class="card" style="padding: 20px 24px 6px; flex-grow: 1; min-height: 0; overflow: hidden;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-              <div style="font-size: 14px; font-weight: 600;">Recent activity</div>
-              <div style="font-size: 11.5px; color: #2150a0; font-weight: 600;">View all</div>
+        <div class="card" style="padding: 20px 24px 8px; display: flex; flex-direction: column; min-height: 0; flex-grow: 1;">
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;">
+            <div>
+              <div class="h2">What happened recently</div>
+              <div class="sub">The last few things printed or scanned.</div>
+            </div>
+            <div style="height: 36px; padding: 0 15px; border-radius: 10px; background: #f6f4f0; font-size: 13.5px; font-weight: 600; color: #6b6459; display: flex; align-items: center;">See everything</div>
+          </div>
+
+          <div style="margin-top: 6px; overflow: hidden;">
+            <div class="arow">
+              <div style="width: 38px; height: 38px; border-radius: 999px; background: #edf2fa; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #2150a0; flex-shrink: 0;">AH</div>
+              <div style="flex-grow: 1; min-width: 0;">
+                <div style="font-size: 14.5px; font-weight: 500;">You printed <strong style="font-weight: 700;">Membership form 2026</strong></div>
+                <div style="font-size: 13px; color: #9c948a; margin-top: 3px;">Reception &middot; 3 pages &middot; 9:52 this morning</div>
+              </div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 11px; border-radius: 999px; background: #edf5f0; color: #4e8c63; font-size: 12.5px; font-weight: 600;">Printed</div>
             </div>
 
             <div class="arow">
-              <div style="width: 32px; height: 32px; border-radius: 9px; background: #e8edf6; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2150a0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7" rx="1"/></svg>
+              <div style="width: 38px; height: 38px; border-radius: 999px; background: #f3f0ea; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#9c948a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/></svg>
               </div>
               <div style="flex-grow: 1; min-width: 0;">
-                <div style="font-size: 13px; font-weight: 500;">Membership form 2026.pdf</div>
-                <div style="font-size: 11px; color: #a2988b; margin-top: 2px;">a.hassan &middot; Reception &middot; 3 impressions</div>
+                <div style="font-size: 14.5px; font-weight: 500;">Someone used the Reception printer directly</div>
+                <div style="font-size: 13px; color: #9c948a; margin-top: 3px;">12 pages &middot; we can&rsquo;t tell if it was printing or copying &middot; 9:20</div>
               </div>
-              <div style="font-size: 11px; color: #a2988b;">09:52</div>
-              <div class="tag" style="color: #5f7a5a; background: #eef2ed;">Completed</div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 11px; border-radius: 999px; background: #f3f0ea; color: #6b6459; font-size: 12.5px; font-weight: 600;">At the printer</div>
             </div>
 
             <div class="arow">
-              <div style="width: 32px; height: 32px; border-radius: 9px; background: #f2ece3; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a7f72" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/></svg>
+              <div style="width: 38px; height: 38px; border-radius: 999px; background: #faf3e6; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#c08a2e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M2 12h20"/></svg>
               </div>
               <div style="flex-grow: 1; min-width: 0;">
-                <div style="font-size: 13px; font-weight: 500;">Device activity</div>
-                <div style="font-size: 11px; color: #a2988b; margin-top: 2px;">Reception &middot; 12 impressions &middot; type not distinguishable</div>
+                <div style="font-size: 14.5px; font-weight: 500;">A scan arrived from the Pool Area</div>
+                <div style="font-size: 13px; color: #9c948a; margin-top: 3px;">2 pages &middot; waiting for someone to claim it &middot; 9:04</div>
               </div>
-              <div style="font-size: 11px; color: #a2988b;">09:20</div>
-              <div class="tag" style="color: #8a7f72; background: #f2ece3;">Walk-up</div>
-            </div>
-
-            <div class="arow">
-              <div style="width: 32px; height: 32px; border-radius: 9px; background: #f6efe8; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b0764f" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M2 12h20"/></svg>
-              </div>
-              <div style="flex-grow: 1; min-width: 0;">
-                <div style="font-size: 13px; font-weight: 500;">SKM_C224e_26082024.pdf</div>
-                <div style="font-size: 11px; color: #a2988b; margin-top: 2px;">Pool Area &middot; 2 pages &middot; waiting to be claimed</div>
-              </div>
-              <div style="font-size: 11px; color: #a2988b;">09:04</div>
-              <div class="tag" style="color: #b0764f; background: #f6efe8;">Scan</div>
+              <div style="height: 32px; padding: 0 14px; border-radius: 999px; background: #2150a0; color: #fff; font-size: 12.5px; font-weight: 600; display: flex; align-items: center;">It&rsquo;s mine</div>
             </div>
 
             <div class="arow" style="border-bottom: none;">
-              <div style="width: 32px; height: 32px; border-radius: 9px; background: #f7eeed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a9524a" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
-              </div>
+              <div style="width: 38px; height: 38px; border-radius: 999px; background: #fbefee; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #c15a50; flex-shrink: 0;">MS</div>
               <div style="flex-grow: 1; min-width: 0;">
-                <div style="font-size: 13px; font-weight: 500;">Tournament draw.xlsx</div>
-                <div style="font-size: 11px; color: #a2988b; margin-top: 2px;">m.said &middot; Academy office &middot; the paper tray is empty</div>
+                <div style="font-size: 14.5px; font-weight: 500;">Mahmoud&rsquo;s <strong style="font-weight: 700;">Tournament draw</strong> is waiting</div>
+                <div style="font-size: 13px; color: #9c948a; margin-top: 3px;">Academy office &middot; 18 pages &middot; the printer needs paper</div>
               </div>
-              <div style="font-size: 11px; color: #a2988b;">08:55</div>
-              <div class="tag" style="color: #a9524a; background: #f7eeed;">Held</div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 11px; border-radius: 999px; background: #fbefee; color: #c15a50; font-size: 12.5px; font-weight: 600;">Waiting</div>
             </div>
           </div>
-
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 22px; min-height: 0;">
+       </div>
 
-          <div class="card" style="padding: 20px 22px 6px; flex-grow: 1; min-height: 0; overflow: hidden;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-              <div style="font-size: 14px; font-weight: 600;">Fleet</div>
-              <div style="font-size: 11px; color: #a2988b;">8 printers</div>
-            </div>
+        <div class="card" style="padding: 22px 24px 10px; display: flex; flex-direction: column; min-height: 0;">
+          <div style="flex-shrink: 0;">
+            <div class="h2">Your printers</div>
+            <div class="sub">6 of 8 are ready to use right now.</div>
+          </div>
 
+          <div style="margin-top: 8px; overflow: hidden;">
             <div class="prow">
-              <span class="dot" style="background: #a9524a;"></span>
+              <span style="width: 10px; height: 10px; border-radius: 999px; background: #c15a50; flex-shrink: 0;"></span>
               <div style="flex-grow: 1; min-width: 0;">
-                <div style="font-size: 13px; font-weight: 600;">Academy office</div>
-                <div style="font-size: 11px; color: #a9524a; margin-top: 3px;">The paper tray is empty</div>
+                <div style="font-size: 14.5px; font-weight: 600;">Academy office</div>
+                <div style="font-size: 13px; color: #c15a50; margin-top: 3px;">Out of paper</div>
               </div>
             </div>
 
             <div class="prow">
-              <span class="dot" style="background: #5f7a5a;"></span>
+              <span style="width: 10px; height: 10px; border-radius: 999px; background: #c08a2e; flex-shrink: 0;"></span>
               <div style="flex-grow: 1; min-width: 0;">
-                <div style="font-size: 13px; font-weight: 600;">Reception</div>
-                <div style="font-size: 11px; color: #a2988b; margin-top: 3px;">Ready &middot; black 62% &middot; ~18 days</div>
-                <div style="height: 4px; border-radius: 999px; background: #f2ece3; margin-top: 8px; overflow: hidden;"><div style="width: 62%; height: 100%; background: #5f7a5a;"></div></div>
+                <div style="font-size: 14.5px; font-weight: 600;">Pool Area</div>
+                <div style="font-size: 13px; color: #6b6459; margin-top: 3px;">Blue ink is nearly out &mdash; about 4 days left</div>
+                <div style="height: 6px; border-radius: 999px; background: #f3f0ea; margin-top: 9px; overflow: hidden;"><div style="width: 9%; height: 100%; background: #c08a2e; border-radius: 999px;"></div></div>
               </div>
             </div>
 
             <div class="prow">
-              <span class="dot" style="background: #b8862b;"></span>
+              <span style="width: 10px; height: 10px; border-radius: 999px; background: #4e8c63; flex-shrink: 0;"></span>
               <div style="flex-grow: 1; min-width: 0;">
-                <div style="font-size: 13px; font-weight: 600;">Pool Area</div>
-                <div style="font-size: 11px; color: #a2988b; margin-top: 3px;">Low cyan &middot; 9% &middot; ~4 days</div>
-                <div style="height: 4px; border-radius: 999px; background: #f2ece3; margin-top: 8px; overflow: hidden;"><div style="width: 9%; height: 100%; background: #b8862b;"></div></div>
+                <div style="font-size: 14.5px; font-weight: 600;">Reception</div>
+                <div style="font-size: 13px; color: #6b6459; margin-top: 3px;">Ready &middot; ink lasts about 18 more days</div>
+                <div style="height: 6px; border-radius: 999px; background: #f3f0ea; margin-top: 9px; overflow: hidden;"><div style="width: 62%; height: 100%; background: #4e8c63; border-radius: 999px;"></div></div>
               </div>
             </div>
 
             <div class="prow" style="border-bottom: none;">
-              <span class="dot" style="background: #cbb9a3;"></span>
+              <span style="width: 10px; height: 10px; border-radius: 999px; background: #d6cfc4; flex-shrink: 0;"></span>
               <div style="flex-grow: 1; min-width: 0;">
-                <div style="font-size: 13px; font-weight: 600; color: #6e6357;">Back office</div>
-                <div style="font-size: 11px; color: #a2988b; margin-top: 3px;">Not tracked &middot; SNMP off</div>
+                <div style="font-size: 14.5px; font-weight: 600; color: #6b6459;">Back office</div>
+                <div style="font-size: 13px; color: #9c948a; margin-top: 3px;">Not being counted, so totals here are a little low</div>
               </div>
             </div>
           </div>
-
-          <div style="flex-shrink: 0; border-radius: 14px; background: #f6efe8; border: 1px solid #e8dccd; padding: 15px 17px; display: flex; gap: 11px;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b0764f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-            <div style="font-size: 11.5px; color: #6e6357; line-height: 1.55;">Walk-up use on <strong style="font-weight: 600; color: #241f1a;">Back office</strong> is not tracked, so these totals understate real usage. Where a printer has no vendor counter, prints and photocopies cannot be told apart.</div>
-          </div>
-
         </div>
 
       </div>

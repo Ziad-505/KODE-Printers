@@ -4,7 +4,7 @@
 
 ## Context
 
-DEC-08 scopes KODE-TECH-0005 to the backend. §B9 specifies scan *detection* —
+DEC-08 scopes KODE-TECH-0005 to the backend. §B9 specifies scan _detection_ —
 observe a folder, log what arrives — and stops there. Zones are named as a gap
 (GAP-14) with no model behind them.
 
@@ -42,10 +42,10 @@ device from a list of fifty while standing in front of the one they want.
 
 ## Rejected
 
-*Trigger scans remotely.* No cross-vendor protocol exists to start a scan from
+_Trigger scans remotely._ No cross-vendor protocol exists to start a scan from
 the network. The system observes; it does not initiate, and saying so plainly
 beats a button that works on one vendor.
 
-*Per-user scan folders.* It would give true identity-aware scanning, and it
+_Per-user scan folders._ It would give true identity-aware scanning, and it
 needs per-user configuration on every device. Reservations get most of the
 benefit with none of the device administration.

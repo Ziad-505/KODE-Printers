@@ -79,7 +79,6 @@ export function Insights(): ReactElement {
   return (
     <>
       <PageHeader
-        eyebrow="Insights"
         title="What the club printed"
         subtitle={`${from} to ${to}`}
         actions={
@@ -204,12 +203,12 @@ export function Insights(): ReactElement {
                 <AreaChart data={series.data} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
                   <defs>
                     <linearGradient id="fillTotal" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#2150A0" stopOpacity={0.55} />
+                      <stop offset="0%" stopColor="#2150A0" stopOpacity={0.22} />
                       <stop offset="100%" stopColor="#2150A0" stopOpacity={0.02} />
                     </linearGradient>
                     <linearGradient id="fillColor" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#F26202" stopOpacity={0.5} />
-                      <stop offset="100%" stopColor="#F26202" stopOpacity={0.02} />
+                      <stop offset="0%" stopColor="#B0764F" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#B0764F" stopOpacity={0.02} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid stroke="var(--border-subtle)" vertical={false} />
@@ -237,7 +236,7 @@ export function Insights(): ReactElement {
                     type="monotone"
                     dataKey="impressions"
                     name="All pages"
-                    stroke="#3A6FCA"
+                    stroke="#2150A0"
                     strokeWidth={2}
                     fill="url(#fillTotal)"
                   />
@@ -245,7 +244,7 @@ export function Insights(): ReactElement {
                     type="monotone"
                     dataKey="colorImpressions"
                     name="Colour"
-                    stroke="#F26202"
+                    stroke="#B0764F"
                     strokeWidth={2}
                     fill="url(#fillColor)"
                   />
@@ -299,10 +298,12 @@ export function Insights(): ReactElement {
                       {leaderboard.data.map((row, index) => (
                         <Cell
                           key={row.key}
-                          // The top consumer gets brand gold; the rest fade
-                          // through blue. Ranking should be readable without
-                          // reading the numbers.
-                          fill={index === 0 ? '#FEC015' : `rgba(33, 80, 160, ${1 - index * 0.09})`}
+                          /* The leader is the brand blue at full strength and
+                             every row below it steps down. Ranking should be
+                             readable without reading the numbers, and a second
+                             hue for first place would be one loud colour more
+                             than this palette allows. */
+                          fill={`rgba(33, 80, 160, ${Math.max(0.28, 1 - index * 0.11)})`}
                         />
                       ))}
                     </Bar>

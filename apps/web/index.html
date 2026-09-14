@@ -4,8 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="dark light" />
-    <meta name="theme-color" content="#0B0E16" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#2150A0" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#171512" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F6F4F0" media="(prefers-color-scheme: light)" />
     <meta name="description" content="Print, scan and track across KODE Sports Club" />
 
     <!-- Standalone PWA on iOS, where the manifest alone is not enough. -->
@@ -17,18 +17,21 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <!--
-      Fonts are self-hosted. The CSP is `default-src 'self'` with no external
-      hosts, which is deliberate for an internal system: a font CDN is an
-      outbound dependency on a network that may have no route to the internet,
-      and a stylesheet from a third party is a script-injection surface.
+      Fonts are self-hosted, and neither file is vendored in the repository —
+      the CSS falls back to the system stack, which is legible but not KODE.
+      Drop `figtree-variable.woff2` and `montserrat-variable.woff2` into
+      `public/fonts/` and the interface picks them up.
+
+      There is deliberately no `<link rel="preload">` here: preloading a file
+      that is usually absent costs a 404 and a console warning on every single
+      page load, which is a poor trade for a few milliseconds when it is
+      present. `font-display: swap` covers the difference.
+
+      No font CDN either. The CSP is `default-src 'self'` with no external
+      hosts, which is deliberate for an internal system: a CDN is an outbound
+      dependency on a network that may have no route to the internet, and a
+      third-party stylesheet is a script-injection surface.
     -->
-    <link
-      rel="preload"
-      href="/fonts/montserrat-variable.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
 
     <title>KODE Printer</title>
   </head>

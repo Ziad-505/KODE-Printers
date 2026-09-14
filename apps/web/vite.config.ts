@@ -21,7 +21,15 @@ export default defineConfig({
         short_name: 'KODE Print',
         description: 'Print, scan and track across KODE Sports Club',
         theme_color: '#2150A0',
-        background_color: '#0B0E16',
+        /**
+         * The splash colour Android paints behind the icon while the app boots.
+         *
+         * It was `#0B0E16`, a near-black left over from the first build's dark
+         * palette — so an installed app flashed a black screen and then landed
+         * on a bone-white one, which reads as a rendering fault rather than a
+         * launch. It has to match `--surface-base`.
+         */
+        background_color: '#f6f4f0',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
@@ -67,14 +75,16 @@ export default defineConfig({
         manualChunks: {
           react: ['react', 'react-dom', 'react-router-dom'],
           charts: ['recharts'],
-          motion: ['framer-motion'],
         },
       },
     },
   },
 
   server: {
-    port: 5173,
+    // 5173 by default, but yields to PORT when something else already holds it.
+    // Hardcoding it means a second checkout, or any other Vite project, cannot
+    // run alongside this one.
+    port: Number(process.env['PORT']) || 5173,
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:3000',

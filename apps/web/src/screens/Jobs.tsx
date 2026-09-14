@@ -1,7 +1,6 @@
-import type { ReactElement } from 'react';
+import type { CSSProperties, ReactElement } from 'react';
 import { useState } from 'react';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AnimatePresence, motion } from 'framer-motion';
 import { describePrintOptions, type Job, type JobStatus, type Paginated } from '@kode/shared';
 import { api, ApiError, qs } from '../lib/api.js';
 import { useAuth } from '../lib/auth.js';
@@ -47,7 +46,6 @@ export function Jobs(): ReactElement {
   return (
     <>
       <PageHeader
-        eyebrow="History"
         title={isAdmin ? 'All activity' : 'Your activity'}
         subtitle="Everything this system sent, plus anything started at a device."
         actions={
@@ -99,19 +97,17 @@ export function Jobs(): ReactElement {
         </Card>
       ) : (
         <div className="stack" style={{ gap: 'var(--space-2)' }}>
-          <AnimatePresence initial={false}>
-            {jobs.map((job) => (
-              <motion.div
-                key={job.id}
-                layout
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
-              >
+          {/* `layout` went with framer-motion. It animated rows sliding to new
+              positions when the list reordered, which on an append-only job
+              history happens only when a page is prepended — a case the
+              entrance animation already covers. It was not worth 115 kB. */}
+          <div className="kp-stagger stack" style={{ gap: 'var(--space-2)' }}>
+            {jobs.map((job, index) => (
+              <div key={job.id} style={{ '--kp-index': index } as CSSProperties}>
                 <JobRow job={job} />
-              </motion.div>
+              </div>
             ))}
-          </AnimatePresence>
+          </div>
 
           {query.hasNextPage ? (
             <Button

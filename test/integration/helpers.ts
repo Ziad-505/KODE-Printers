@@ -54,6 +54,7 @@ export async function resetDatabase(): Promise<TestContext> {
     TRUNCATE TABLE
       impression_ledger, notification_reads, notifications, push_subscriptions,
       scan_reservations, scans, jobs, user_printers, refresh_tokens,
+      password_setup_tokens,
       collector_event_keys, print_templates,
       printer_supply_history, printer_supplies, printers, collectors,
       users, zones

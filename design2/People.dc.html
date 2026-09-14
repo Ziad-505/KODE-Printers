@@ -1,0 +1,264 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap">
+  <style>
+    body { margin: 0; background: #f6f4f0; }
+    a { color: #2150a0; } a:hover { color: #173770; }
+    .ui { font-family: 'Figtree', 'Segoe UI', system-ui, sans-serif; color: #2b2722; }
+    .brand { font-family: 'Montserrat', 'Segoe UI', sans-serif; }
+    .card { background: #ffffff; border: 1px solid #eae5dd; border-radius: 18px; box-shadow: 0 1px 2px rgb(43 39 34 / 4%), 0 8px 20px -12px rgb(43 39 34 / 10%); }
+    .nav { display: flex; align-items: center; gap: 13px; height: 44px; padding: 0 14px; border-radius: 12px; font-size: 14.5px; font-weight: 500; color: #6b6459; }
+    .nav--on { background: #edf2fa; color: #2150a0; font-weight: 600; }
+    .h2 { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+    .sub { font-size: 13px; color: #9c948a; margin-top: 3px; }
+    .row { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid #f2eee7; }
+    .av { width: 40px; height: 40px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+    .chip { display: inline-flex; align-items: center; height: 26px; padding: 0 12px; border-radius: 999px; font-size: 12.5px; font-weight: 600; }
+    .btn-quiet { height: 34px; padding: 0 14px; border-radius: 10px; background: #f6f4f0; font-size: 13.5px; font-weight: 600; color: #6b6459; display: flex; align-items: center; }
+    .step { display: flex; gap: 13px; padding: 13px 0; }
+    .step__n { width: 24px; height: 24px; border-radius: 999px; background: #edf2fa; color: #2150a0; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  </style>
+</helmet>
+
+<div class="ui" style="width: 1440px; height: 960px; background: #f6f4f0; display: flex; overflow: hidden;">
+
+  <div style="width: 240px; flex-shrink: 0; background: #ffffff; border-right: 1px solid #eae5dd; display: flex; flex-direction: column; padding: 22px 14px 18px;">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 8px 24px;">
+      <svg viewBox="0 0 100 102" width="24" height="24" role="img" aria-label="KODE">
+        <path fill="#2150a0" fill-rule="evenodd" d="M0 0 L25.93 0 L27.92.57 L30.48 1.99 L33.33 5.13 L34.47 7.41 L35.04 11.97 L43.3 2.85 L46.72.85 L49.86 0 L85.75 0 L85.75 5.7 L54.13 44.44 L51.28 46.72 L46.44 48.43 L11.11 48.43 L7.98 47.58 L4.56 45.58 L1.71 42.17 L.28 38.75 L0 .28Z M8.83 8.26 L25.36 8.26 L26.78 9.4 L27.07 29.91 L28.77 31.91 L30.2 31.62 L31.62 30.2 L49.29 9.12 L51.28 8.26 L73.5 8.26 L49.57 37.61 L47.58 39.6 L46.15 40.17 L12.25 40.17 L10.83 39.6 L8.83 37.04 L8.83 8.55Z M10.26 53.56 L47.29 53.56 L51.57 55.27 L54.99 58.4 L90.31 101.99 L49.29 101.71 L44.44 99.72 L42.17 98.01 L35.33 89.74 L34.76 90.03 L34.76 93.45 L33.62 96.3 L31.05 99.43 L28.21 101.14 L23.93 101.99 L.28 101.99 L.28 62.96 L1.71 59.54 L3.7 56.98 L7.41 54.42 L9.97 53.85Z M12.82 61.54 L45.58 61.54 L47.86 62.39 L73.22 93.45 L50.71 93.45 L49 92.59 L29.91 70.09 L27.92 70.37 L27.07 71.79 L26.78 92.31 L25.64 93.45 L8.83 93.45 L8.83 64.96 L10.54 62.39 L12.54 61.82Z M3.42 3.42 L25.64 3.42 L28.21 4.56 L30.48 6.84 L31.62 9.97 L31.91 21.65 L43.02 7.98 L45.58 5.41 L48.15 3.99 L50.14 3.42 L83.19 3.42 L51.85 41.88 L49.86 43.59 L46.15 45.01 L11.4 45.01 L6.84 43.02 L4.27 39.89 L3.42 37.32 L3.42 3.7Z M10.54 56.98 L47.01 56.98 L49.29 57.83 L52.71 60.97 L83.19 98.58 L51.28 98.58 L47.86 97.72 L43.59 94.59 L31.91 80.34 L31.62 91.74 L30.48 94.87 L27.92 97.44 L24.5 98.58 L3.42 98.58 L3.42 64.67 L5.7 59.83 L8.26 57.83 L10.26 57.26Z"/>
+      </svg>
+      <div class="brand" style="font-size: 13.5px; font-weight: 800; letter-spacing: 0.03em;">KODE <span style="font-weight: 700; color: #9c948a;">PRINTER</span></div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 3px;">
+      <div class="nav">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/></svg>
+        Home
+      </div>
+      <div class="nav">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7" rx="1.5"/></svg>
+        Print a document
+      </div>
+      <div class="nav">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><circle cx="6.8" cy="7.5" r=".9"/></svg>
+        Printers
+        <span style="margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: #fbefee; color: #c15a50; font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center;">1</span>
+      </div>
+      <div class="nav">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M2 12h20"/></svg>
+        Scans
+        <span style="margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: #f3f0ea; color: #6b6459; font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center;">3</span>
+      </div>
+      <div class="nav">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        History
+      </div>
+      <div class="nav nav--on">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+        People
+      </div>
+      <div class="nav">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20V10"/><path d="M9 20V4"/><path d="M15 20v-7"/><path d="M21 20V8"/></svg>
+        Reports
+      </div>
+    </div>
+
+    <div style="margin-top: auto;">
+      <div class="nav">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.8 1.1V21a2 2 0 1 1-4 0v-.2A1.6 1.6 0 0 0 7.3 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.8H1a2 2 0 1 1 0-4h.2A1.6 1.6 0 0 0 4.6 7.3a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 2.8-1.1V1a2 2 0 1 1 4 0v.2a1.6 1.6 0 0 0 2.8 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.8H23a2 2 0 1 1 0 4h-.2a1.6 1.6 0 0 0-1.4 1z"/></svg>
+        Settings
+      </div>
+      <div style="display: flex; align-items: center; gap: 11px; padding: 14px 8px 0; margin-top: 10px; border-top: 1px solid #f2eee7;">
+        <div class="av" style="width: 36px; height: 36px; background: #edf2fa; color: #2150a0; font-size: 12.5px;">AH</div>
+        <div style="min-width: 0; flex-grow: 1;">
+          <div style="font-size: 13.5px; font-weight: 600;">Ahmed Hassan</div>
+          <div style="font-size: 11.5px; color: #9c948a;">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden;">
+
+    <div style="flex-shrink: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding: 26px 30px 0;">
+      <div>
+        <div style="font-size: 25px; font-weight: 700; letter-spacing: -0.02em;">People</div>
+        <div style="font-size: 14px; color: #6b6459; margin-top: 5px;">Who can sign in, and which printers they&rsquo;re allowed to use.</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px; width: 230px; height: 44px; padding: 0 15px; border-radius: 12px; background: #ffffff; border: 1px solid #eae5dd;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9c948a" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <span style="font-size: 14px; color: #9c948a;">Find someone</span>
+        </div>
+        <div style="height: 44px; padding: 0 20px; border-radius: 12px; background: #2150a0; color: #fff; font-size: 14.5px; font-weight: 600; display: flex; align-items: center; gap: 9px;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>
+          Create an account
+        </div>
+      </div>
+    </div>
+
+    <div style="flex-grow: 1; padding: 22px 30px 28px; display: grid; grid-template-columns: minmax(0, 1fr) 372px; gap: 20px; overflow: hidden;">
+
+      <div style="display: flex; flex-direction: column; gap: 20px; min-height: 0;">
+
+        <div class="card" style="flex-shrink: 0; padding: 20px 24px 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="h2">Waiting to set a password</div>
+            <div style="height: 22px; padding: 0 9px; border-radius: 999px; background: #faf3e6; color: #c08a2e; font-size: 12px; font-weight: 700; display: flex; align-items: center;">2</div>
+          </div>
+          <div class="sub">Their account exists. Send them their link and they&rsquo;re in.</div>
+
+          <div class="row" style="margin-top: 6px;">
+            <div class="av" style="background: #faf3e6; color: #c08a2e;">SK</div>
+            <div style="flex-grow: 1; min-width: 0;">
+              <div style="font-size: 14.5px; font-weight: 600;">Sara Kamal</div>
+              <div style="font-size: 13px; color: #9c948a; margin-top: 3px;">Signs in as <strong style="color: #6b6459; font-weight: 600;">s.kamal</strong> &middot; created by you 2 days ago &middot; link good until 31 Aug</div>
+            </div>
+            <div class="chip" style="background: #f3f0ea; color: #6b6459;">Can use 3 printers</div>
+            <div class="btn-quiet" style="background: #edf2fa; color: #2150a0; gap: 8px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2150a0" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 2px;"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy link</div>
+            <div class="btn-quiet">New link</div>
+            <div class="btn-quiet" style="color: #c15a50;">Remove</div>
+          </div>
+
+          <div class="row" style="border-bottom: none;">
+            <div class="av" style="background: #faf3e6; color: #c08a2e;">YT</div>
+            <div style="flex-grow: 1; min-width: 0;">
+              <div style="font-size: 14.5px; font-weight: 600;">Youssef Tarek</div>
+              <div style="font-size: 13px; color: #c08a2e; margin-top: 3px;">Signs in as <strong style="color: #6b6459; font-weight: 600;">y.tarek</strong> &middot; his link expires tomorrow &mdash; make a fresh one</div>
+            </div>
+            <div class="chip" style="background: #f3f0ea; color: #6b6459;">Can use 1 printer</div>
+            <div class="btn-quiet" style="background: #edf2fa; color: #2150a0; gap: 8px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2150a0" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 2px;"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy link</div>
+            <div class="btn-quiet">New link</div>
+            <div class="btn-quiet" style="color: #c15a50;">Remove</div>
+          </div>
+        </div>
+
+        <div class="card" style="flex-grow: 1; min-height: 0; padding: 20px 24px 10px; display: flex; flex-direction: column;">
+          <div style="flex-shrink: 0;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div class="h2">Everyone at the club</div>
+              <div style="height: 22px; padding: 0 9px; border-radius: 999px; background: #f3f0ea; color: #6b6459; font-size: 12px; font-weight: 700; display: flex; align-items: center;">14</div>
+            </div>
+            <div class="sub">Turning someone off stops them signing in straight away.</div>
+          </div>
+
+          <div style="margin-top: 6px; overflow: hidden;">
+            <div class="row">
+              <div class="av" style="background: #edf2fa; color: #2150a0;">AH</div>
+              <div style="flex-grow: 1; min-width: 0;">
+                <div style="font-size: 14.5px; font-weight: 600;">Ahmed Hassan <span style="font-weight: 500; color: #9c948a;">&mdash; you</span></div>
+                <div style="font-size: 13px; color: #9c948a; margin-top: 3px;">a.hassan@kodesportsclub.com &middot; here now</div>
+              </div>
+              <div class="chip" style="background: #edf2fa; color: #2150a0;">Administrator</div>
+              <div class="chip" style="background: #f3f0ea; color: #6b6459;">Every printer</div>
+              <div style="width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#9c948a" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="av" style="background: #edf5f0; color: #4e8c63;">NF</div>
+              <div style="flex-grow: 1; min-width: 0;">
+                <div style="font-size: 14.5px; font-weight: 600;">Nour Fouad</div>
+                <div style="font-size: 13px; color: #9c948a; margin-top: 3px;">n.fouad@kodesportsclub.com &middot; last signed in this morning</div>
+              </div>
+              <div class="chip" style="background: #f3f0ea; color: #6b6459;">Staff</div>
+              <div class="chip" style="background: #f3f0ea; color: #6b6459;">4 printers</div>
+              <div style="width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#9c948a" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="av" style="background: #edf5f0; color: #4e8c63;">MS</div>
+              <div style="flex-grow: 1; min-width: 0;">
+                <div style="font-size: 14.5px; font-weight: 600;">Mahmoud Said</div>
+                <div style="font-size: 13px; color: #9c948a; margin-top: 3px;">m.said@kodesportsclub.com &middot; last signed in yesterday</div>
+              </div>
+              <div class="chip" style="background: #f3f0ea; color: #6b6459;">Staff</div>
+              <div class="chip" style="background: #f3f0ea; color: #6b6459;">2 printers</div>
+              <div style="width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#9c948a" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+              </div>
+            </div>
+
+            <div class="row" style="border-bottom: none; opacity: 0.62;">
+              <div class="av" style="background: #f3f0ea; color: #9c948a;">RE</div>
+              <div style="flex-grow: 1; min-width: 0;">
+                <div style="font-size: 14.5px; font-weight: 600;">Rana Elshamy</div>
+                <div style="font-size: 13px; color: #9c948a; margin-top: 3px;">Turned off in June &mdash; her print history is still here</div>
+              </div>
+              <div class="chip" style="background: #f3f0ea; color: #6b6459;">Turned off</div>
+              <div class="btn-quiet">Turn back on</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 20px; min-height: 0;">
+
+        <div class="card" style="flex-shrink: 0; padding: 22px 24px 14px;">
+          <div class="h2">How you give someone access</div>
+          <div style="margin-top: 8px;">
+            <div class="step">
+              <div class="step__n">1</div>
+              <div style="font-size: 13.5px; color: #6b6459; line-height: 1.55;">Enter their name and tick the printers they may use. No password to think up.</div>
+            </div>
+            <div class="step">
+              <div class="step__n">2</div>
+              <div style="font-size: 13.5px; color: #6b6459; line-height: 1.55;">A set-up link appears. Press <strong style="color: #2b2722; font-weight: 600;">Copy link</strong> and send it however you normally reach them.</div>
+            </div>
+            <div class="step">
+              <div class="step__n">3</div>
+              <div style="font-size: 13.5px; color: #6b6459; line-height: 1.55;">They open it, choose their own password, and they&rsquo;re signed in. <strong style="color: #2b2722; font-weight: 600;">You never see it.</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="flex-shrink: 0; padding: 22px 24px;">
+          <div class="h2">Someone forgot their password</div>
+          <div style="font-size: 13.5px; color: #6b6459; line-height: 1.6; margin-top: 8px;">Open the <strong style="color: #2b2722; font-weight: 600;">&ctdot;</strong> menu beside their name and choose <strong style="color: #2b2722; font-weight: 600;">Make a reset link</strong>. Copy it, send it, done &mdash; exactly the same as setting up a new person.</div>
+          <div style="display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: #faf3e6; border: 1px solid #f2e6cd;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c08a2e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            <div style="font-size: 12.5px; color: #6b6459; line-height: 1.5;">Making a reset link signs them out on every device straight away.</div>
+          </div>
+        </div>
+
+        <div class="card" style="flex-grow: 1; min-height: 0; padding: 22px 24px; background: #fcfaf7;">
+          <div class="h2">Two kinds of people</div>
+          <div style="display: flex; gap: 12px; margin-top: 14px;">
+            <div class="chip" style="background: #edf2fa; color: #2150a0; flex-shrink: 0;">Administrator</div>
+            <div style="font-size: 13.5px; color: #6b6459; line-height: 1.55;">Sees everything, adds printers and people, changes settings.</div>
+          </div>
+          <div style="display: flex; gap: 12px; margin-top: 14px;">
+            <div class="chip" style="background: #f3f0ea; color: #6b6459; flex-shrink: 0;">Staff</div>
+            <div style="font-size: 13.5px; color: #6b6459; line-height: 1.55;">Prints to the printers you ticked, collects their own scans, sees their own history.</div>
+          </div>
+          <div style="font-size: 12.5px; color: #9c948a; line-height: 1.6; margin-top: 18px; padding-top: 16px; border-top: 1px solid #f2eee7;">Which printers someone can use is set here and nowhere else &mdash; not by their department, not by which building they work in.</div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

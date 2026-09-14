@@ -1,6 +1,5 @@
-import type { ReactElement } from 'react';
+import type { CSSProperties, ReactElement } from 'react';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import { formatDuration, type Notification, type Paginated } from '@kode/shared';
 import { api, qs } from '../lib/api.js';
 import {
@@ -51,7 +50,6 @@ export function Notifications(): ReactElement {
   return (
     <>
       <PageHeader
-        eyebrow="Alerts"
         title="Notifications"
         subtitle={unreadCount > 0 ? `${unreadCount} unread` : 'Everything is read'}
         actions={
@@ -84,12 +82,7 @@ export function Notifications(): ReactElement {
       ) : (
         <div className="stack" style={{ gap: 'var(--space-2)' }}>
           {items.map((notification, index) => (
-            <motion.div
-              key={notification.id}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.22, delay: Math.min(index * 0.02, 0.2) }}
-            >
+            <div key={notification.id} style={{ '--kp-index': index } as CSSProperties}>
               <Card>
                 <button
                   type="button"
@@ -133,7 +126,7 @@ export function Notifications(): ReactElement {
                   {!notification.isRead ? <Badge tone="info">new</Badge> : null}
                 </button>
               </Card>
-            </motion.div>
+            </div>
           ))}
 
           {query.hasNextPage ? (

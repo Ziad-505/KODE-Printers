@@ -7,6 +7,7 @@ import { collectorsModel } from '../../models/collectors.js';
 import { jobsModel } from '../../models/jobs.js';
 import { ledgerModel } from '../../models/ledger.js';
 import { notificationsModel } from '../../models/notifications.js';
+import { passwordTokensModel } from '../../models/passwordTokens.js';
 import { refreshTokensModel } from '../../models/refreshTokens.js';
 import { scansModel } from '../../models/scans.js';
 import { getSettings } from '../../models/settings.js';
@@ -85,6 +86,9 @@ export async function sweep(): Promise<{
   await ledgerModel.expire(pool);
   await scansModel.expireReservations(pool);
   await collectorsModel.purgeOldEventKeys(pool);
+  // Spent and expired set-password links. Kept a week past their end so
+  // "did she ever use that link?" still has an answer.
+  await passwordTokensModel.purgeSpent(pool);
 
   // §B10.7 — purge activity is logged. An auditor asking "where did the
   // original go" gets an answer rather than a shrug.

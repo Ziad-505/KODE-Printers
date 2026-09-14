@@ -61,13 +61,39 @@ Open `https://printers.kodesportsclub.local`, sign in as `admin`, choose a new
 password, then add your first printer by IP address — serial number, vendor,
 model, IPP support and capabilities are discovered from the device.
 
+### Giving someone an account
+
+Nobody signs themselves up, and nobody is ever told their own first password.
+
+On **People**, press _Create an account_, enter their name and tick the printers
+they may use. A single-use link comes back; press **Copy link** and send it
+however you already reach that person. They open it, choose a password nobody
+else ever sees, and land signed in.
+
+A forgotten password is the same three moves — _Make a reset link_, copy, send —
+and making one signs that account out everywhere immediately. Setup links last
+seven days, reset links one hour, and issuing a new one kills the old one.
+
+No mail server is involved anywhere in this, deliberately: an SMTP dependency
+that has to work before anyone can sign in is a worse failure mode than a link
+that is pasted by hand.
+
 ### Development
 
 ```bash
 npm install
 npm run dev          # API on :3000, web on :5173
-npm test             # unit suite
-npm run typecheck    # strict, all three packages
+npm test             # unit suite; integration tests skip without a database
+npm run test:all     # starts the throwaway test database first, then runs everything
+npm run typecheck    # strict, all three packages, plus the tests
+npm run lint
+```
+
+The API needs a database even in development:
+
+```bash
+docker compose up -d db
+npm run migrate && npm run seed
 ```
 
 `npm run dev:harness` starts the fake-printer harness, so the whole print path
@@ -138,7 +164,7 @@ Each is recorded as a superseding ADR in [`docs/adr/`](docs/adr/).
 | 014 | No `printers.floor` column                       | Every KODE building is single-storey. `area` ("Reception", "Back office") is what helps someone find a printer.         |
 | 015 | PJL injection guard on the RAW path              | A `.txt` whose content is `@PJL DEFAULT PASSWORD=0` reconfigures the device. Any user who can print text could do this. |
 | 016 | Printer-safety gate                              | Impression ceilings, state gating, cooldown, circuit breaker. Not specified anywhere in the document.                   |
-| 017 | Scan hub, QR walk-up, templates, zones UI       | The document scopes the backend only (DEC-08).                                                                          |
+| 017 | Scan hub, QR walk-up, templates, zones UI        | The document scopes the backend only (DEC-08).                                                                          |
 
 ### The PJL hole, specifically
 
@@ -189,17 +215,26 @@ the surface entirely.
 ## Testing
 
 ```bash
-npm test                # unit
+npm test                # unit; integration skips when no test database is up
+npm run test:all        # brings the test database up, then runs everything
 npm run test:coverage   # thresholds on ledger, transport, permissions
 ```
 
 Integration tests need a real PostgreSQL and **skip with a clear reason** when
-none is reachable, so a developer without Docker running is not blocked:
+none is reachable, so a developer without Docker running is not blocked. They
+run against a dedicated throwaway database rather than the application's own:
 
 ```bash
-docker compose up -d db
+npm run test:db     # docker compose --profile test up -d --wait db-test
 npm test
+npm run test:db:stop
 ```
+
+That container publishes **5434** and holds its data in tmpfs. The port matters:
+a developer's own PostgreSQL usually has 5432 and the application's database
+container publishes 5433, and the integration suite `TRUNCATE`s every table
+between tests. A third port that belongs to nothing else is what stops a typo in
+`DATABASE_URL` wiping something someone cared about.
 
 The fake-printer harness (`tools/fake-printer`) provides an IPP responder, a
 9100 listener that records the exact bytes it received, and a scriptable SNMP

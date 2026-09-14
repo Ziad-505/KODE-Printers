@@ -240,22 +240,35 @@ export class FakeIppPrinter {
           ),
         );
         parts.push(attribute(0x21, 'printer-state', 3)); // idle
-        for (const reason of this.options.stateReasons ?? ['none']) {
-          parts.push(attribute(0x44, 'printer-state-reasons', reason));
-        }
+        parts.push(
+          multiValue(0x44, 'printer-state-reasons', this.options.stateReasons ?? ['none']),
+        );
         parts.push(attribute(0x44, 'ipp-versions-supported', '1.1'));
-        parts.push(attribute(0x49, 'document-format-supported', 'application/pdf'));
-        if (this.options.acceptsPdf === false) {
-          parts.push(attribute(0x49, 'document-format-supported', 'application/postscript'));
-        }
-        parts.push(attribute(0x44, 'sides-supported', 'one-sided'));
-        if (this.options.supportsDuplex !== false) {
-          parts.push(attribute(0x44, 'sides-supported', 'two-sided-long-edge'));
-        }
-        parts.push(attribute(0x44, 'print-color-mode-supported', 'monochrome'));
-        if (this.options.supportsColor) {
-          parts.push(attribute(0x44, 'print-color-mode-supported', 'color'));
-        }
+        parts.push(
+          multiValue(
+            0x49,
+            'document-format-supported',
+            this.options.acceptsPdf === false
+              ? ['application/pdf', 'application/postscript']
+              : ['application/pdf'],
+          ),
+        );
+        parts.push(
+          multiValue(
+            0x44,
+            'sides-supported',
+            this.options.supportsDuplex === false
+              ? ['one-sided']
+              : ['one-sided', 'two-sided-long-edge'],
+          ),
+        );
+        parts.push(
+          multiValue(
+            0x44,
+            'print-color-mode-supported',
+            this.options.supportsColor ? ['monochrome', 'color'] : ['monochrome'],
+          ),
+        );
         parts.push(attribute(0x21, 'copies-supported', 999));
         parts.push(attribute(0x44, 'media-supported', 'iso_a4_210x297mm'));
       } else if (operation === 0x0002) {
@@ -292,6 +305,28 @@ export class FakeIppPrinter {
 }
 
 /** Encodes one IPP attribute: tag, name length + name, value length + value. */
+/**
+ * A `1setOf` — one attribute carrying several values (RFC 8010 §3.1.4).
+ *
+ * The harness used to emit these as repeated *named* attributes, which is a
+ * different thing on the wire: the second occurrence replaces the first, so a
+ * printer configured with three state reasons served exactly one, and it was
+ * always the last. Every test that passed a single reason worked, which is why
+ * this stood — and it hid the multi-value handling that a real device exercises
+ * on every poll. A Xerox WorkCentre reports nine `printer-state-reasons`.
+ *
+ * Additional values repeat the value tag with a zero-length name. That empty
+ * name is the entire signal that says "another value of the attribute above".
+ */
+function multiValue(tag: number, name: string, values: readonly string[]): Buffer {
+  const [first, ...rest] = values;
+  if (first === undefined) return Buffer.alloc(0);
+  return Buffer.concat([
+    attribute(tag, name, first),
+    ...rest.map((value) => attribute(tag, '', value)),
+  ]);
+}
+
 function attribute(tag: number, name: string, value: string | number): Buffer {
   const nameBuffer = Buffer.from(name, 'utf8');
   const valueBuffer =

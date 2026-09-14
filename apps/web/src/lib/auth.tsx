@@ -23,6 +23,8 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
   signIn: (username: string, password: string, rememberMe: boolean) => Promise<LoginResult>;
+  /** Adopts a session established by redeeming a set-password link. */
+  adoptSession: (result: LoginResult) => void;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
   isAdmin: boolean;
@@ -127,6 +129,28 @@ export function AuthProvider({ children }: { children: ReactNode }): ReactElemen
     [loadMe],
   );
 
+  /**
+   * Takes a session that was established somewhere other than the sign-in form.
+   *
+   * Redeeming a set-password link returns exactly what `/auth/login` returns —
+   * the server puts it through the same path deliberately — but the response
+   * arrives on a screen that has no session to update through `signIn`. This is
+   * the seam for that, and it is the only other way a session begins.
+   */
+  const adoptSession = useCallback(
+    (result: LoginResult) => {
+      setAccessToken(result.accessToken);
+      setState({
+        user: result.user,
+        mustChangePassword: result.mustChangePassword,
+        pushPublicKey: null,
+        status: 'authenticated',
+      });
+      void loadMe().catch(() => undefined);
+    },
+    [loadMe],
+  );
+
   const signOut = useCallback(async () => {
     // The server call clears the cookie and revokes the token; local state is
     // cleared regardless, so a network failure still signs you out here.
@@ -139,12 +163,13 @@ export function AuthProvider({ children }: { children: ReactNode }): ReactElemen
     () => ({
       ...state,
       signIn,
+      adoptSession,
       signOut,
       refreshUser: loadMe,
       isAdmin: state.user?.role === 'admin',
       can: (role: Role) => (role === 'admin' ? state.user?.role === 'admin' : Boolean(state.user)),
     }),
-    [state, signIn, signOut, loadMe],
+    [state, signIn, adoptSession, signOut, loadMe],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

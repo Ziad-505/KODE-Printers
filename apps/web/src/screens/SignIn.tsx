@@ -1,216 +1,81 @@
-import type { ReactElement } from 'react';
-import { useState, type FormEvent } from 'react';
-import { motion } from 'framer-motion';
+import { useState, type FormEvent, type ReactElement } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ApiError } from '../lib/api.js';
 import { useAuth } from '../lib/auth.js';
-import { Button, Field, Input, KodeMark, Switch } from '../components/ui.js';
+import { Button, Field, Input, KodeMark, Note, Switch } from '../components/ui.js';
 
 /**
- * Sign-in.
+ * Sign in.
  *
- * The panel on the left is not decoration for its own sake — a login screen is
- * the one surface every member of staff sees, and a bare centred form on a grey
- * page is where an internal tool starts feeling like an internal tool. The
- * diagonal echoes the K's shear, the mark is oversized and cropped, and the
- * whole panel collapses away below 900px so the phone experience is the form
- * and nothing else.
+ * There is no sign-up link and no "create an account", because nobody signs
+ * themselves up: an administrator creates the account and sends a set-up link.
+ * Saying that plainly at the bottom of the card is worth more than a dead link
+ * to a page that would only tell someone to go and ask.
+ *
+ * The floating mark is the one piece of motion in the interface. It sits above
+ * the card rather than inside it so the card reads as lifted off the page, and
+ * two more drift far back in the ground at 5% opacity.
  */
 export function SignIn(): ReactElement {
   const { signIn } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const onSubmit = async (event: FormEvent): Promise<void> => {
+  const from = (location.state as { from?: string } | null)?.from;
+
+  async function onSubmit(event: FormEvent): Promise<void> {
     event.preventDefault();
     setError(null);
     setBusy(true);
+
     try {
       await signIn(username.trim(), password, rememberMe);
+      void navigate(from && from !== '/signin' ? from : '/', { replace: true });
     } catch (caught) {
-      // The server returns one message for every rejection path, so the form
-      // cannot become a username oracle. It is repeated verbatim rather than
-      // reinterpreted here.
+      /* The server deliberately gives the same answer for an unknown username
+       * and a wrong password, so the client must not embellish it into
+       * something more specific. A lockout is different — that one the person
+       * genuinely needs to understand, and it names the wait. */
       setError(
         caught instanceof ApiError
           ? caught.message
           : 'Could not reach the server. Check your connection and try again.',
       );
+    } finally {
       setBusy(false);
     }
-  };
+  }
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1fr)',
-        minHeight: '100dvh',
-      }}
-      className="signin"
-    >
-      <style>{`
-        @media (width >= 900px) {
-          .signin { grid-template-columns: 1.1fr 1fr !important; }
-          .signin__panel { display: grid !important; }
-        }
-      `}</style>
+    <div className="auth">
+      <div className="auth__ground" />
+      <DriftMark className="auth__drift auth__drift--a" size={300} />
+      <DriftMark className="auth__drift auth__drift--b" size={230} />
 
-      {/* ── brand panel ─────────────────────────────────────────────────── */}
-      <aside
-        className="signin__panel"
-        style={{
-          display: 'none',
-          position: 'relative',
-          overflow: 'hidden',
-          background: 'linear-gradient(150deg, var(--surface-2), var(--surface-base) 70%)',
-          borderRight: '1px solid var(--border-subtle)',
-          alignContent: 'center',
-          padding: 'var(--space-8)',
-        }}
-      >
-        {/* The mark, oversized and bled off the edge. Cropping it is what makes
-            it read as a graphic rather than as a logo placed on a page. */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            right: '-14%',
-            top: '50%',
-            translate: '0 -50%',
-            color: 'var(--kode-blue)',
-            opacity: 0.16,
-            filter: 'blur(0.4px)',
-          }}
-        >
-          <KodeMark size={460} />
+      <div className="auth__panel">
+        <div className="auth__mark">
+          <KodeMark size={44} title="KODE Printer" />
         </div>
 
-        {/* The diagonal sweep, at the mark's own 26.5°. */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            inset: '-20% -30%',
-            background:
-              'linear-gradient(to bottom, transparent 30%, rgb(254 192 21 / 8%) 50%, transparent 70%)',
-            transform: 'rotate(var(--kode-angle))',
-          }}
-        />
-
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          style={{ position: 'relative', maxWidth: '30rem' }}
-        >
-          <div className="kode-eyebrow">KODE Sports Club · Technology</div>
-          <h1
-            style={{
-              marginTop: 'var(--space-4)',
-              fontSize: 'clamp(2.4rem, 4vw, 3.4rem)',
-              fontWeight: 900,
-              letterSpacing: '-0.035em',
-              lineHeight: 1.02,
-            }}
-          >
-            Every page,
-            <br />
-            <span style={{ color: 'var(--kode-gold)' }}>accounted for.</span>
+        <div className="auth__card">
+          <div className="auth__eyebrow">KODE PRINTER</div>
+          <h1 className="auth__title" style={{ marginTop: 'var(--space-3)' }}>
+            Welcome back
           </h1>
-          <p
-            style={{
-              marginTop: 'var(--space-5)',
-              fontSize: 'var(--text-lg)',
-              color: 'var(--text-secondary)',
-              maxWidth: '34ch',
-            }}
-          >
-            Print from any browser, collect your scans, and see exactly what the club printed —
-            without installing anything.
-          </p>
+          <p className="auth__lede">Sign in to print, scan and pick things up.</p>
 
-          <ul
-            style={{
-              marginTop: 'var(--space-6)',
-              display: 'grid',
-              gap: 'var(--space-3)',
-              listStyle: 'none',
-              padding: 0,
-              fontSize: 'var(--text-sm)',
-              color: 'var(--text-secondary)',
-            }}
-          >
-            {[
-              'No drivers, no installs — it works from the browser',
-              'Jobs are held, retried, and never silently lost',
-              'Walk-up activity at the device is tracked too',
-            ].map((line) => (
-              <li key={line} className="row" style={{ gap: 'var(--space-3)' }}>
-                <span
-                  aria-hidden="true"
-                  style={{
-                    width: 5,
-                    height: 5,
-                    borderRadius: '50%',
-                    background: 'var(--kode-gold)',
-                    flexShrink: 0,
-                  }}
-                />
-                {line}
-              </li>
-            ))}
-          </ul>
-        </motion.div>
-      </aside>
-
-      {/* ── form ────────────────────────────────────────────────────────── */}
-      <main
-        style={{
-          display: 'grid',
-          placeItems: 'center',
-          padding: 'var(--space-5)',
-        }}
-      >
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
-          style={{ width: 'min(400px, 100%)' }}
-        >
-          <div className="row" style={{ gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
-            <span style={{ color: 'var(--kode-blue-bright)' }}>
-              <KodeMark size={34} title="KODE" />
-            </span>
-            <div>
-              <div
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontWeight: 900,
-                  fontSize: 'var(--text-xl)',
-                  letterSpacing: '-0.025em',
-                  lineHeight: 1.1,
-                }}
-              >
-                KODE Printer
-              </div>
-              <div className="kode-eyebrow">Sign in to continue</div>
-            </div>
-          </div>
-
-          <form
-            onSubmit={(event) => {
-              void onSubmit(event);
-            }}
-            className="stack"
-            noValidate
-          >
+          <form onSubmit={(event) => void onSubmit(event)} className="stack" noValidate>
             <Field label="Username">
               {(id) => (
                 <Input
                   id={id}
+                  name="username"
                   value={username}
                   onChange={(event) => setUsername(event.target.value)}
                   autoComplete="username"
@@ -219,7 +84,6 @@ export function SignIn(): ReactElement {
                   spellCheck={false}
                   required
                   autoFocus
-                  aria-invalid={Boolean(error)}
                 />
               )}
             </Field>
@@ -228,34 +92,21 @@ export function SignIn(): ReactElement {
               {(id) => (
                 <Input
                   id={id}
+                  name="password"
                   type="password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   autoComplete="current-password"
                   required
-                  aria-invalid={Boolean(error)}
                 />
               )}
             </Field>
 
-            <Switch
-              checked={rememberMe}
-              onChange={setRememberMe}
-              label="Keep me signed in"
-              hint="Only on a device that is yours."
-            />
+            <div className="row row--between" style={{ marginTop: 'var(--space-1)' }}>
+              <Switch checked={rememberMe} onChange={setRememberMe} label="Keep me signed in" />
+            </div>
 
-            {error ? (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                className="note note--critical"
-                role="alert"
-              >
-                <span aria-hidden="true">⚠</span>
-                <span>{error}</span>
-              </motion.div>
-            ) : null}
+            {error ? <Note severity="critical">{error}</Note> : null}
 
             <Button type="submit" variant="primary" size="lg" block loading={busy}>
               Sign in
@@ -264,12 +115,29 @@ export function SignIn(): ReactElement {
 
           <p
             className="dim"
-            style={{ marginTop: 'var(--space-5)', fontSize: 'var(--text-xs)', textAlign: 'center' }}
+            style={{
+              marginTop: 'var(--space-5)',
+              fontSize: 'var(--text-xs)',
+              textAlign: 'center',
+              textWrap: 'pretty',
+            }}
           >
-            Forgotten your password? An administrator can reset it for you.
+            No account yet, or forgotten your password? Ask an administrator — they will send you a
+            link to set a new one.
           </p>
-        </motion.div>
-      </main>
+        </div>
+
+        <div className="auth__foot">KODE Sports Club · Technology</div>
+      </div>
+    </div>
+  );
+}
+
+/** A mark sitting far back in the ground. Decorative, so hidden from readers. */
+function DriftMark({ className, size }: { className: string; size: number }): ReactElement {
+  return (
+    <div className={className} aria-hidden="true">
+      <KodeMark size={size} />
     </div>
   );
 }

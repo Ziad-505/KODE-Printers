@@ -6,8 +6,10 @@ import { App } from './App.js';
 import { ApiError } from './lib/api.js';
 import { AuthProvider } from './lib/auth.js';
 import { ToastProvider } from './components/ui.js';
+import { initialiseServiceWorker } from './lib/pwa.js';
 import './styles/theme.css';
 import './styles/components.css';
+import './styles/motion.css';
 
 /**
  * Query client defaults.
@@ -49,6 +51,10 @@ const stored = localStorage.getItem('kode-theme');
 if (stored === 'light' || stored === 'dark') {
   document.documentElement.dataset['theme'] = stored;
 }
+
+/* Registered before React mounts, so a returning visitor is served the cached
+ * shell on the next load rather than the one after that. */
+initialiseServiceWorker();
 
 const root = document.getElementById('root');
 if (!root) throw new Error('#root is missing from index.html');

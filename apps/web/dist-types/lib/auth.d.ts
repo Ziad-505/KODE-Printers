@@ -18,6 +18,8 @@ interface AuthState {
 }
 interface AuthContextValue extends AuthState {
     signIn: (username: string, password: string, rememberMe: boolean) => Promise<LoginResult>;
+    /** Adopts a session established by redeeming a set-password link. */
+    adoptSession: (result: LoginResult) => void;
     signOut: () => Promise<void>;
     refreshUser: () => Promise<void>;
     isAdmin: boolean;

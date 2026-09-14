@@ -22,10 +22,14 @@
     "typecheck:tests": "tsc -p tsconfig.eslint.json --noEmit --noPropertyAccessFromIndexSignature false",
     "lint": "eslint . --max-warnings 0",
     "check:api": "node scripts/check-openapi.mjs",
+    "icons": "node scripts/build-icons.mjs",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{ts,tsx,css,json,md,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,css,json,md,yml,yaml}\"",
     "test": "vitest run",
+    "test:db": "docker compose --profile test up -d --wait db-test",
+    "test:db:stop": "docker compose --profile test down -v",
+    "test:all": "npm run test:db && vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "migrate": "npm run migrate -w @kode/server",
@@ -38,13 +42,14 @@
   "devDependencies": {
     "@eslint/js": "^9.18.0",
     "@types/node": "^22.10.5",
-    "@vitest/coverage-v8": "^3.0.4",
+    "@vitest/coverage-v8": "^5.0.0",
+    "@vitest/mocker": "^5.0.0",
     "concurrently": "^9.1.2",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "prettier": "^3.4.2",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.21.0",
-    "vitest": "^3.0.4"
+    "vitest": "^5.0.0"
   }
 }

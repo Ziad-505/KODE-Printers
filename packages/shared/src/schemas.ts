@@ -358,6 +358,15 @@ export const manualJobSchema = z.object({
 
 /* ------------------------------------------------------------------ users  */
 
+/**
+ * Creating an account no longer asks for a password.
+ *
+ * An administrator who types one has to transmit it, and the only channels
+ * available are the ones this system cannot audit. The account is created
+ * without a password and a single-use link is minted instead; the person
+ * chooses their own. `password` remains accepted so an operator can still set
+ * one deliberately, but nothing in the interface asks for it.
+ */
 export const userCreateSchema = z.object({
   username: usernameSchema,
   email: z
@@ -368,13 +377,38 @@ export const userCreateSchema = z.object({
     .nullable()
     .optional(),
   displayName: optionalTextSchema(120),
-  password: passwordSchema,
+  password: passwordSchema.optional(),
   role: z.enum(ROLES).default('user'),
   department: optionalTextSchema(120),
   printerIds: z.array(idSchema).max(200).default([]),
-  /** Forces a rotation at first sign-in. Defaults on, per GAP-01. */
+  /** Forces a rotation at first sign-in when a password *was* supplied. */
   mustChangePassword: z.boolean().default(true),
 });
+
+/** Which kind of link an administrator is minting. */
+export const setupLinkSchema = z.object({
+  purpose: z.enum(['setup', 'reset']).default('setup'),
+});
+
+/**
+ * Redeeming a link. The token arrives from the URL rather than from a form,
+ * so it is validated for shape here before it is used to look anything up.
+ */
+export const redeemSetupLinkSchema = z
+  .object({
+    token: z
+      .string()
+      .trim()
+      .min(20, 'That link is not complete.')
+      .max(200)
+      .regex(/^[A-Za-z0-9_-]+$/, 'That link is not valid.'),
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((v) => v.password === v.confirmPassword, {
+    message: 'The two passwords do not match.',
+    path: ['confirmPassword'],
+  });
 
 export const userUpdateSchema = userCreateSchema
   .omit({ password: true, username: true, printerIds: true })
@@ -472,6 +506,15 @@ export const statsQuerySchema = z
     zoneId: idSchema.optional(),
     printerId: idSchema.optional(),
     userId: idSchema.optional(),
+    /**
+     * Narrows a series to jobs from one source.
+     *
+     * The dashboard draws app jobs and walk-up activity as two separate lines,
+     * because DEC-06 refuses to call the second one printing and a single
+     * combined line would do exactly that. Without this the client could only
+     * plot the total.
+     */
+    source: z.enum(JOB_SOURCES).optional(),
     bucket: z.enum(['hour', 'day', 'week', 'month']).default('day'),
   })
   .refine((v) => new Date(v.from) <= new Date(v.to), {
@@ -568,6 +611,7 @@ export type PrintOptionsOutput = z.output<typeof printOptionsSchema>;
 export type PrinterCreateInput = z.input<typeof printerCreateSchema>;
 export type PrinterUpdateInput = z.input<typeof printerUpdateSchema>;
 export type UserCreateInput = z.input<typeof userCreateSchema>;
+export type RedeemSetupLinkInput = z.input<typeof redeemSetupLinkSchema>;
 export type SettingsUpdateInput = z.input<typeof settingsUpdateSchema>;
 export type JobQueryInput = z.input<typeof jobQuerySchema>;
 export type StatsQueryInput = z.input<typeof statsQuerySchema>;

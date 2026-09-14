@@ -9,7 +9,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
 import {
   KODE_MARK_ASPECT,
   KODE_MARK_PATH,
@@ -17,6 +16,7 @@ import {
   type PrinterStatus,
   type Severity,
 } from '@kode/shared';
+import { usePresence } from '../lib/presence.js';
 
 /**
  * The primitive layer.
@@ -228,20 +228,25 @@ const STATUS_LABEL: Record<PrinterStatus, string> = {
   unknown: 'Unknown',
 };
 
+/**
+ * The status of a printer, said in words.
+ *
+ * `label` is passed in rather than derived here, because the translation from
+ * IPP keywords to English lives in `lib/plain.ts` and must not be duplicated.
+ * This component used to render `reasons[0].replace(/-/g, ' ')`, which is how
+ * "media empty" reached a receptionist's screen.
+ */
 export function StatusBadge({
   status,
-  reasons,
+  label,
 }: {
   status: PrinterStatus;
-  reasons?: readonly string[];
+  label?: string | undefined;
 }): ReactElement {
-  // The keyword list is the truth; the badge is the summary. Showing the first
-  // reason inline is what turns "Attention" into something actionable.
-  const detail = reasons?.[0]?.replace(/-/g, ' ');
   return (
     <span className={`badge badge--${status}`}>
       <StatusDot status={status} />
-      {detail && status !== 'online' ? detail : STATUS_LABEL[status]}
+      {label ?? STATUS_LABEL[status]}
     </span>
   );
 }
@@ -370,6 +375,34 @@ export function Switch({
 
 /* ──────────────────────────────────────────────────────────────────── modal ── */
 
+/**
+ * Page-scroll locking, counted rather than saved and restored.
+ *
+ * Each modal used to snapshot `document.body.style.overflow` on open and put it
+ * back on close. With one modal that works. With two — the link dialog opening
+ * as the create dialog closes, which is the ordinary path through People — the
+ * second one snapshots the `hidden` the first had already set, and restores
+ * *that*, leaving the page permanently unscrollable with no dialog on screen.
+ *
+ * A depth counter has no such failure: the lock lifts when the last dialog
+ * closes and not before.
+ */
+let scrollLocks = 0;
+let scrollWasSetTo = '';
+
+function lockScroll(): void {
+  if (scrollLocks === 0) {
+    scrollWasSetTo = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+  }
+  scrollLocks += 1;
+}
+
+function unlockScroll(): void {
+  scrollLocks = Math.max(0, scrollLocks - 1);
+  if (scrollLocks === 0) document.body.style.overflow = scrollWasSetTo;
+}
+
 export function Modal({
   open,
   onClose,
@@ -382,8 +415,10 @@ export function Modal({
   title: string;
   children: ReactNode;
   footer?: ReactNode;
-}): ReactElement {
+}): ReactElement | null {
   const ref = useRef<HTMLDivElement>(null);
+  // Kept mounted for the length of the leave animation. See `usePresence`.
+  const { mounted, state } = usePresence(open);
 
   useEffect(() => {
     if (!open) return;
@@ -397,53 +432,44 @@ export function Modal({
     // the body is locked so a phone does not scroll the page under the sheet.
     const previous = document.activeElement as HTMLElement | null;
     ref.current?.focus();
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    lockScroll();
 
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = overflow;
+      unlockScroll();
       previous?.focus();
     };
   }, [open, onClose]);
 
+  if (!mounted) return null;
+
   return (
-    <AnimatePresence>
-      {open ? (
-        <motion.div
-          className="overlay"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.16 }}
-          onClick={(event) => {
-            if (event.target === event.currentTarget) onClose();
-          }}
-        >
-          <motion.div
-            ref={ref}
-            className="modal"
-            role="dialog"
-            aria-modal="true"
-            aria-label={title}
-            tabIndex={-1}
-            initial={{ opacity: 0, y: 24, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.98 }}
-            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-          >
-            <div className="modal__header">
-              <h2 className="card__title">{title}</h2>
-              <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close">
-                <CloseIcon />
-              </Button>
-            </div>
-            <div className="modal__body">{children}</div>
-            {footer ? <div className="modal__footer">{footer}</div> : null}
-          </motion.div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+    <div
+      className="overlay"
+      data-state={state}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        ref={ref}
+        className="modal"
+        data-state={state}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        tabIndex={-1}
+      >
+        <div className="modal__header">
+          <h2 className="card__title">{title}</h2>
+          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close">
+            <CloseIcon />
+          </Button>
+        </div>
+        <div className="modal__body">{children}</div>
+        {footer ? <div className="modal__footer">{footer}</div> : null}
+      </div>
+    </div>
   );
 }
 
@@ -483,23 +509,14 @@ export function ToastProvider({ children }: { children: ReactNode }): ReactEleme
     <ToastContext.Provider value={value}>
       {children}
       <div className="toast-stack" role="status" aria-live="polite">
-        <AnimatePresence initial={false}>
-          {toasts.map((toast) => (
-            <motion.div
-              key={toast.id}
-              className={`toast toast--${toast.tone}`}
-              initial={{ opacity: 0, x: 40, scale: 0.96 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: 40, scale: 0.96 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-            >
-              <div style={{ minWidth: 0 }}>
-                <div className="toast__title">{toast.title}</div>
-                {toast.body ? <div className="toast__body">{toast.body}</div> : null}
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+        {toasts.map((toast) => (
+          <div key={toast.id} className={`toast toast--${toast.tone}`} data-state="open">
+            <div style={{ minWidth: 0 }}>
+              <div className="toast__title">{toast.title}</div>
+              {toast.body ? <div className="toast__body">{toast.body}</div> : null}
+            </div>
+          </div>
+        ))}
       </div>
     </ToastContext.Provider>
   );
@@ -678,5 +695,21 @@ export const QrIcon = (): ReactElement => (
 export const CheckIcon = (): ReactElement => (
   <svg {...iconProps}>
     <path d="M20 6 9 17l-5-5" />
+  </svg>
+);
+
+export const HomeIcon = (): ReactElement => (
+  <svg {...iconProps} aria-hidden="true">
+    <path d="M3 10.5 12 3l9 7.5" />
+    <path d="M5 9.5V20h14V9.5" />
+    <path d="M10 20v-6h4v6" />
+  </svg>
+);
+
+export const PeopleIcon = (): ReactElement => (
+  <svg {...iconProps} aria-hidden="true">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
   </svg>
 );

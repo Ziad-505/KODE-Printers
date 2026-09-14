@@ -1,6 +1,5 @@
 import type { ReactElement } from 'react';
 import { useState, type FormEvent } from 'react';
-import { motion } from 'framer-motion';
 import { api, ApiError } from '../lib/api.js';
 import { useAuth } from '../lib/auth.js';
 import { Button, Card, Field, Input, KodeMark, Note, useToast } from '../components/ui.js';
@@ -69,12 +68,7 @@ export function ChangePassword({ forced = false }: { forced?: boolean }): ReactE
         padding: 'var(--space-5)',
       }}
     >
-      <motion.div
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        style={{ width: 'min(460px, 100%)' }}
-      >
+      <div className="kp-rise" style={{ width: 'min(460px, 100%)' }}>
         <div className="row" style={{ gap: 'var(--space-3)', marginBottom: 'var(--space-5)' }}>
           <span style={{ color: 'var(--kode-blue-bright)' }}>
             <KodeMark size={30} title="KODE" />
@@ -182,7 +176,7 @@ export function ChangePassword({ forced = false }: { forced?: boolean }): ReactE
             ) : null}
           </div>
         </Card>
-      </motion.div>
+      </div>
     </div>
   );
 }

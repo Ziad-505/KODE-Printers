@@ -24,6 +24,8 @@ interface UserRow {
   last_login_at: string | null;
   is_active: boolean;
   is_system: boolean;
+  has_password: boolean;
+  setup_link_expires_at: string | null;
   created_at: string;
   updated_at: string;
   printer_ids: number[] | null;
@@ -33,6 +35,12 @@ const USER_SELECT = `
   SELECT u.id, u.username::text AS username, u.email::text AS email, u.display_name,
          u.role, u.department, u.zone_id, u.auth_provider, u.must_change_password, u.locked_until,
          u.last_login_at, u.is_active, u.is_system, u.created_at, u.updated_at,
+         (u.password_hash IS NOT NULL) AS has_password,
+         -- The outstanding set-password link, if there is one. Drives the
+         -- "waiting to set a password" list without a second round trip.
+         (SELECT t.expires_at FROM password_setup_tokens t
+            WHERE t.user_id = u.id AND t.consumed_at IS NULL AND t.expires_at > now()
+            LIMIT 1) AS setup_link_expires_at,
          COALESCE(
            (SELECT array_agg(up.printer_id ORDER BY up.printer_id)
               FROM user_printers up
@@ -57,6 +65,8 @@ const toUser = (row: UserRow): User => ({
   lastLoginAt: row.last_login_at,
   isActive: row.is_active,
   isSystem: row.is_system,
+  hasPassword: row.has_password,
+  setupLinkExpiresAt: row.setup_link_expires_at,
   printerIds: row.printer_ids ?? [],
   createdAt: row.created_at,
   updatedAt: row.updated_at,
@@ -183,7 +193,8 @@ export interface UserInsert {
   username: string;
   email: string | null;
   displayName: string | null;
-  passwordHash: string;
+  /** Null when the person will choose their own through a set-password link. */
+  passwordHash: string | null;
   role: Role;
   department: string | null;
   mustChangePassword: boolean;

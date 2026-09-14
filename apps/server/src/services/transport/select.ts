@@ -129,18 +129,18 @@ export async function send(db: Db, request: SendRequest): Promise<SendOutcome> {
   if (transport === 'ipp') {
     const uri = printer.ippUri ?? defaultIppUri(printer.ipAddress);
     try {
+      const negotiated = negotiateOptions(printer, request.options);
       const result = await sendIpp({
         uri,
         document: request.document,
         documentFormat: negotiateFormat(printer, request.contentType),
         jobName: request.jobName,
         username: request.username,
-        copies: request.options.copies,
-        sides: request.options.sides,
-        colorMode: request.options.colorMode,
-        media: request.options.media,
-        orientation: request.options.orientation,
-        pageRanges: request.options.pageRanges,
+        copies: negotiated.copies,
+        sides: negotiated.sides,
+        colorMode: negotiated.colorMode,
+        media: negotiated.media,
+        orientation: negotiated.orientation,
         ...(request.timeoutMs === undefined ? {} : { timeoutMs: request.timeoutMs }),
       });
 
@@ -164,30 +164,37 @@ export async function send(db: Db, request: SendRequest): Promise<SendOutcome> {
       }
 
       if (kind === 'rejected') {
-        // The device understood us and said no — retrying changes nothing.
-        throw new AppError('PRINTER_UNREACHABLE', 'The printer rejected this job.', {
-          details: { printerId: printer.id, transport: 'ipp' },
-          retryable: false,
-          cause: error,
+        // The device understood us and said no to THIS job (e.g. an
+        // unsupported document-format/attribute combo) — retrying the same
+        // IPP request changes nothing, but the printer itself still supports
+        // IPP, so it must not be demoted. RAW/9100 skips IPP's attribute
+        // negotiation entirely and is very likely to succeed where the IPP
+        // request was rejected, so fall through to it instead of failing the
+        // job outright.
+        log.warn(
+          { printerId: printer.id, err: String(error) },
+          'IPP job rejected by device; falling back to RAW/9100 for this job',
+        );
+        // Fall through to RAW below.
+      } else {
+        log.warn(
+          { printerId: printer.id, err: String(error) },
+          'IPP protocol failure; demoting to RAW/9100 until the next probe',
+        );
+        await printersModel.saveCapabilities(db, printer.id, {
+          ...printer.capabilities,
+          ipp: { supported: false, versions: [], uri: null },
         });
+        // Fall through to RAW below.
       }
-
-      log.warn(
-        { printerId: printer.id, err: String(error) },
-        'IPP protocol failure; demoting to RAW/9100 until the next probe',
-      );
-      await printersModel.saveCapabilities(db, printer.id, {
-        ...printer.capabilities,
-        ipp: { supported: false, versions: [], uri: null },
-      });
-      // Fall through to RAW below.
     }
   }
-  const result = await sendRaw({
+   const result = await sendRaw({
     host: printer.ipAddress,
     document: request.document,
     contentType: request.contentType,
     pjl: toPjlOptions(request),
+    vendor: printer.vendor ?? null,
     ...(request.timeoutMs === undefined ? {} : { writeTimeoutMs: request.timeoutMs }),
   });
   return {
@@ -218,6 +225,79 @@ function negotiateFormat(printer: PrinterWithSecrets, produced: string): string 
   return produced;
 }
 
+/**
+ * Clamps job attributes to what the probed printer actually advertised.
+ *
+ * `sendIpp` sends whatever it is given; some devices (several HP models among
+ * them) answer with `client-error-attributes-or-values-not-supported` the
+ * moment one value is outside what they listed in `Get-Printer-Attributes`,
+ * rather than silently substituting their own default the way RAW/PJL
+ * effectively does. Negotiating here means the value we send is one the
+ * device already told us it accepts, so the `rejected` path in `send()`
+ * becomes a safety net for capabilities we mis-probed rather than the normal
+ * path for every job with a non-default option.
+ *
+ * `probedVia: 'none'` (no probe data at all) is treated as "don't second-guess
+ * the request" — there is nothing to negotiate against, so the original
+ * options pass through unchanged.
+ */
+function negotiateOptions(
+  printer: PrinterWithSecrets,
+  options: PrintOptions,
+): {
+  copies: number;
+  sides: PrintOptions['sides'];
+  colorMode: PrintOptions['colorMode'];
+  media: PrintOptions['media'];
+  orientation: PrintOptions['orientation'];
+} {
+  const caps = printer.capabilities;
+  if (caps.probedVia === 'none') {
+    return {
+      copies: options.copies,
+      sides: options.sides,
+      colorMode: options.colorMode,
+      media: options.media,
+      orientation: options.orientation,
+    };
+  }
+
+  const sides =
+    caps.sides.length === 0 || caps.sides.includes(options.sides) ? options.sides : 'one-sided';
+
+  const colorModeOrGrayscale = caps.colorModes.includes('grayscale') ? 'grayscale' : caps.colorModes[0];
+
+  const colorMode =
+    caps.colorModes.length === 0 || caps.colorModes.includes(options.colorMode)
+      ? options.colorMode
+      : colorModeOrGrayscale ?? 'grayscale';
+
+  const media =
+    caps.media.length === 0 || caps.media.includes(options.media)
+      ? options.media
+      : (DEFAULT_PRINT_OPTIONS.media);
+
+  const copies =
+    caps.maxCopies !== null ? Math.max(1, Math.min(caps.maxCopies, options.copies)) : options.copies;
+
+  // 3 = portrait, 4 = landscape (see PrinterCapabilities.orientations). An
+  // empty list means the device never advertised the attribute — same
+  // "don't second-guess it" treatment as `probedVia: 'none'` above, since a
+  // PDF-only workflow commonly omits it (orientation lives in the document).
+  const requestedOrientationCode = options.orientation === 'landscape' ? 4 : 3;
+  const orientation =
+    caps.orientations.length === 0 || caps.orientations.includes(requestedOrientationCode)
+      ? options.orientation
+      : 'portrait';
+
+  return { copies, sides, colorMode, media, orientation };
+}
+
+
+
+
+
+
 function toPjlOptions(request: SendRequest): PjlOptions {
   const options = { ...DEFAULT_PRINT_OPTIONS, ...request.options };
   return {
@@ -231,6 +311,11 @@ function toPjlOptions(request: SendRequest): PjlOptions {
     contentType: request.contentType,
   };
 }
+
+
+
+
+
 /**
  * Splits an IPP `printer-make-and-model` string into vendor and model.
  *

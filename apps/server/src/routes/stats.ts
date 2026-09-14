@@ -54,14 +54,20 @@ statsRouter.get(
       ...summary,
       // DEC-06 travels with the data.
       walkupLabel: settings.walkupReportLabel,
+      /* The caveats §B8.5 and DEC-06 require, in words a person reads.
+       *
+       * These strings are rendered verbatim beside the totals, so they are
+       * user-facing copy rather than diagnostics — "walk-up activity is not
+       * tracked" is the server's own vocabulary and told a reader nothing
+       * about what to do with the number they were looking at. */
       coverageNote: summary.hasCoverageGap
-        ? `Walk-up activity is not tracked on ${summary.coverageGapPrinters.length} ` +
-          `printer${summary.coverageGapPrinters.length === 1 ? '' : 's'} ` +
-          `(${summary.coverageGapPrinters.join(', ')}), so these totals understate real usage.`
+        ? `${summary.coverageGapPrinters.length === 1 ? 'One printer' : `${summary.coverageGapPrinters.length} printers`} ` +
+          `(${summary.coverageGapPrinters.join(', ')}) cannot tell us when someone uses ` +
+          `${summary.coverageGapPrinters.length === 1 ? 'it' : 'them'} directly, so these totals are a little low.`
         : null,
       typeNote: summary.includesUntypedDeviceActivity
-        ? `Some activity is recorded as ${settings.walkupReportLabel.toLowerCase()} because the ` +
-          'device has no vendor counter to separate prints from photocopies.'
+        ? 'Some of this was done standing at a printer that cannot tell a print from a ' +
+          `photocopy, so it is counted as ${settings.walkupReportLabel.toLowerCase()} rather than printing.`
         : null,
     });
   }),

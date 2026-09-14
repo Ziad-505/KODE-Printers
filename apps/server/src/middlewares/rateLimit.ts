@@ -77,3 +77,16 @@ export const collectorLimiter = base({
   limit: 600,
   keyGenerator: (req: Request) => `collector:${req.collectorId ?? clientIp(req) ?? 'unknown'}`,
 });
+
+/**
+ * The set-password endpoints.
+ *
+ * Unauthenticated by necessity: someone redeeming a link has no session yet.
+ * That makes them the one public surface where a token could be guessed at, so
+ * the ceiling is low — a person opens one link, once, and never needs a second
+ * attempt in the same minute.
+ */
+export const setPasswordLimiter = base({
+  limit: 12,
+  keyGenerator: (req: Request) => `setpw:${clientIp(req) ?? 'unknown'}`,
+});

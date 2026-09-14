@@ -1,0 +1,502 @@
+/**
+ * The proposed design language, scoped to `.nx`.
+ *
+ * Everything here lives under one class so it can sit beside the current
+ * stylesheet without touching a single existing screen. That is the whole point
+ * of the file: the comparison has to be honest, and it is not honest if
+ * adopting the new type scale silently reflows the eleven screens we have not
+ * looked at yet.
+ *
+ * It reuses `theme.css` tokens for colour, so dark mode, reduced motion and the
+ * brand palette all keep working. What it does *not* reuse is the type scale,
+ * the border habit, or the spacing — those are the three things the audit found
+ * were making a well-built app read like an admin template.
+ *
+ * Three rules, applied consistently:
+ *
+ *   1. **Type carries the hierarchy.** Body is 17px, the size iOS uses, not
+ *      14.5px. Titles are large and semibold rather than small and black. No
+ *      text below 13px anywhere, and nothing below 16px in an input — mobile
+ *      Safari force-zooms the page on focus under that, which is the single
+ *      most obvious "this is a website pretending" tell on an iPhone.
+ *
+ *   2. **Whitespace groups; borders do not.** One rounded container per group,
+ *      hairlines *between* rows and inset from the leading edge. The current
+ *      build draws a box around the card, a box around each row and a box
+ *      around each gauge, and boxes inside boxes always read as a form.
+ *
+ *   3. **One accent.** KODE blue on the primary action and nothing else.
+ *      Status is a coloured dot beside ordinary text, not a coloured pill —
+ *      five saturated pills on one screen is what spends the colour budget.
+ */
+
+.nx {
+  /* ------------------------------------------------------------ type scale */
+  /* iOS text styles, near enough. The jump from 14.5 to 17 for body is the
+     single change that does most of the work. */
+  --nx-large-title: 2rem; /* 32px */
+  --nx-title: 1.375rem; /* 22px */
+  --nx-headline: 1.0625rem; /* 17px, semibold */
+  --nx-body: 1.0625rem; /* 17px */
+  --nx-callout: 1rem; /* 16px — the input floor */
+  --nx-subhead: 0.9375rem; /* 15px */
+  --nx-footnote: 0.8125rem; /* 13px */
+
+  /* ---------------------------------------------------------------- rhythm */
+  --nx-gutter: 1rem;
+  --nx-row: 3.25rem; /* 52px; with padding every row clears the 44px target */
+
+  /* Hairlines, not borders. A hairline separates two things that belong
+     together; a border encloses something. Most of what this build calls a
+     border wanted to be a hairline. */
+  --nx-hairline: color-mix(in srgb, var(--text-primary) 10%, transparent);
+
+  font-size: var(--nx-body);
+  line-height: 1.45;
+  color: var(--text-primary);
+  padding-bottom: var(--space-8);
+}
+
+@media (width >= 900px) {
+  .nx {
+    --nx-large-title: 2.25rem;
+    --nx-gutter: 1.25rem;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════ header */
+
+.nx-header {
+  padding: var(--space-2) 0 var(--space-5);
+}
+
+.nx-header__title {
+  font-size: var(--nx-large-title);
+  font-weight: 700;
+  /* Tight tracking is what stops a large heading looking like a blown-up
+     small one. It is most of the difference on its own. */
+  letter-spacing: -0.022em;
+  line-height: 1.1;
+}
+
+.nx-header__subtitle {
+  margin-top: var(--space-2);
+  font-size: var(--nx-subhead);
+  color: var(--text-secondary);
+}
+
+/* A search field that does not zoom the page on iPhone. */
+.nx-search {
+  position: relative;
+  margin-top: var(--space-4);
+}
+
+.nx-search input {
+  width: 100%;
+  height: 44px;
+  padding: 0 var(--space-4) 0 2.5rem;
+  /* 16px minimum. Below this, mobile Safari zooms on focus and never zooms
+     back, which leaves the page scrolled sideways for the rest of the session. */
+  font-size: var(--nx-callout);
+  color: var(--text-primary);
+  background: var(--surface-3);
+  border: none;
+  border-radius: var(--radius-md);
+  appearance: none;
+}
+
+.nx-search input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.nx-search input:focus-visible {
+  outline: 2px solid var(--kode-blue);
+  outline-offset: 1px;
+}
+
+.nx-search__icon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  translate: 0 -50%;
+  color: var(--text-tertiary);
+  pointer-events: none;
+  display: flex;
+}
+
+/* ═════════════════════════════════════════════════════════════════ section */
+
+/**
+ * A group header, iOS-style: small, secondary, and outside the container it
+ * labels. Putting it inside would need another border to separate it.
+ */
+.nx-section__label {
+  font-size: var(--nx-footnote);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text-secondary);
+  padding: 0 var(--space-1) var(--space-2);
+}
+
+.nx-section + .nx-section {
+  margin-top: var(--space-6);
+}
+
+.nx-grid {
+  display: grid;
+  gap: var(--nx-gutter);
+  /* 380 rather than 300: a printer card carries a name, a location, a status
+     sentence and four supply readings, and 300px made every one of them wrap.
+     `auto-fit` + `minmax` also stops a single printer sitting in a 300px column
+     beside 1100px of nothing. */
+  grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr));
+}
+
+@media (width >= 1500px) {
+  /* Past three columns the cards stop being scannable and start being wallpaper. */
+  .nx-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════ card */
+
+.nx-card {
+  background: var(--surface-1);
+  border-radius: var(--radius-lg);
+  /* One soft shadow instead of a 1px outline. The outline is what made a page
+     of cards read as a table with gaps in it. */
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--text-primary) 6%, transparent),
+    0 8px 24px -12px color-mix(in srgb, var(--text-primary) 14%, transparent);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.nx-card__head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4) var(--space-3);
+}
+
+.nx-card__name {
+  font-size: var(--nx-title);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  /* The name is the card's identity, so it gets the width and the badge does
+     not. The old header let both size themselves and "Testing Xerox" rendered
+     as "Te…". */
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.nx-card__where {
+  margin-top: 2px;
+  font-size: var(--nx-subhead);
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ────────────────────────────────────────────────────────────────── status */
+
+/**
+ * A dot and a sentence, not a pill.
+ *
+ * The pill was doing three jobs — colour, border, background — to say one
+ * thing. The dot says it, the words say the rest, and the card stops competing
+ * with itself for attention.
+ */
+.nx-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-4) var(--space-4);
+  font-size: var(--nx-subhead);
+  font-weight: 500;
+}
+
+.nx-status__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--status-unknown);
+}
+
+.nx-status--ready .nx-status__dot {
+  background: var(--status-online);
+}
+.nx-status--attention .nx-status__dot {
+  background: var(--status-degraded);
+}
+.nx-status--stopped .nx-status__dot {
+  background: var(--status-offline);
+}
+
+.nx-status--stopped {
+  color: var(--status-offline);
+  font-weight: 600;
+}
+
+/* ──────────────────────────────────────────────────────────────── supplies */
+
+/**
+ * A grouped list: one container, hairlines between rows, nothing around them.
+ *
+ * The hairline is inset to the text column — the iOS separator inset — which is
+ * what makes a list read as one object rather than a stack of strips.
+ */
+.nx-supplies {
+  border-top: 1px solid var(--nx-hairline);
+}
+
+.nx-supply {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  min-height: var(--nx-row);
+  padding: var(--space-3) var(--space-4);
+  position: relative;
+}
+
+.nx-supply + .nx-supply::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: var(--space-4);
+  right: 0;
+  border-top: 1px solid var(--nx-hairline);
+}
+
+.nx-supply__name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--nx-subhead);
+  min-width: 0;
+}
+
+.nx-supply__swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex: none;
+  /* A ring rather than a fill for yellow, which vanishes on white. */
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-primary) 18%, transparent);
+}
+
+.nx-supply__value {
+  font-size: var(--nx-subhead);
+  font-weight: 600;
+  /* Tabular figures so a column of levels lines up instead of shimmering as
+     the numbers change. */
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.nx-supply__value--low {
+  color: var(--status-offline);
+}
+
+.nx-supply__bar {
+  grid-column: 1 / -1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.nx-supply__fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width var(--duration-slow, 400ms) var(--ease-out, ease);
+}
+
+.nx-supply__note {
+  grid-column: 1 / -1;
+  font-size: var(--nx-footnote);
+  color: var(--text-tertiary);
+}
+
+/* A disclosure, so the four cartridges people care about are not buried under
+   eight service parts they do not. */
+.nx-disclosure {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--nx-footnote);
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  border-top: 1px solid var(--nx-hairline);
+  cursor: pointer;
+}
+
+.nx-disclosure:hover {
+  background: var(--surface-2);
+}
+
+.nx-disclosure__chevron {
+  transition: rotate var(--duration-fast, 150ms) var(--ease-out, ease);
+}
+
+.nx-disclosure[aria-expanded='true'] .nx-disclosure__chevron {
+  rotate: 180deg;
+}
+
+/* ───────────────────────────────────────────────────────────────── actions */
+
+.nx-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  margin-top: auto;
+  border-top: 1px solid var(--nx-hairline);
+}
+
+/**
+ * 44px everywhere, which is the Apple HIG floor and the reason the old `sm`
+ * buttons — 36px — were the wrong control for a card someone taps while
+ * standing at a machine.
+ */
+.nx-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 44px;
+  padding: 0 var(--space-5);
+  font-size: var(--nx-subhead);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background var(--duration-fast, 150ms) var(--ease-out, ease),
+    opacity var(--duration-fast, 150ms) var(--ease-out, ease);
+}
+
+.nx-btn:active:not(:disabled) {
+  scale: 0.97;
+}
+
+/* The one accent on the screen. */
+.nx-btn--primary {
+  flex: 1;
+  background: var(--kode-blue);
+  color: var(--text-inverse);
+}
+
+.nx-btn--primary:hover {
+  background: var(--kode-blue-bright);
+}
+
+.nx-btn--quiet {
+  width: 44px;
+  padding: 0;
+  background: var(--surface-3);
+  color: var(--text-secondary);
+}
+
+.nx-btn--quiet:hover {
+  background: var(--surface-4);
+  color: var(--text-primary);
+}
+
+.nx-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ───────────────────────────────────────────────────────────────── notices */
+
+.nx-note {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  margin: 0 var(--space-4) var(--space-4);
+  font-size: var(--nx-footnote);
+  color: var(--text-secondary);
+  background: var(--surface-3);
+  border-radius: var(--radius-md);
+}
+
+.nx-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.nx-tag {
+  font-size: var(--nx-footnote);
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--surface-3);
+  padding: 4px var(--space-3);
+  border-radius: var(--radius-pill);
+}
+
+/* ───────────────────────────────────────────────────────────── empty state */
+
+.nx-empty {
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+  color: var(--text-secondary);
+}
+
+.nx-empty__title {
+  font-size: var(--nx-title);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.nx-skeleton {
+  border-radius: var(--radius-lg);
+  background: linear-gradient(90deg, var(--surface-2), var(--surface-3), var(--surface-2));
+  background-size: 200% 100%;
+  animation: nx-shimmer 1.4s linear infinite;
+}
+
+@keyframes nx-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nx-skeleton {
+    animation: none;
+  }
+  .nx-btn:active:not(:disabled) {
+    scale: 1;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────── the A/B link */
+
+.nx-compare {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  margin-top: var(--space-6);
+  font-size: var(--nx-footnote);
+  font-weight: 600;
+  color: var(--kode-blue);
+}

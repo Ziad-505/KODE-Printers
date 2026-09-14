@@ -29,5 +29,5 @@ guarantee that an optional field is either absent or a value, never a silent
 
 ## Rejected
 
-*Incremental adoption.* It buys safety for existing behaviour. With no existing
+_Incremental adoption._ It buys safety for existing behaviour. With no existing
 behaviour it buys a second build path and a permanent boundary where types stop.
